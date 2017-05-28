@@ -47,3 +47,60 @@ Notes
 2. Tesseract configure script may fail to detect leptonica, so you may have to edit the configure script - comment off some if's around this message and retain only "then" branch.
 
 3. You are encouraged to search the Net for some better pre-trained classifiers, as well as classifiers for other languages.
+
+
+Word spotting CNN
+=================
+
+Intro
+-----
+
+A word spotting CNN is a CNN that takes an image assumed to contain a single word and provides a probabillity over a given vocabulary.
+Although other backends will be supported, for the moment only the Caffe backend is supported.
+
+
+
+
+Instalation of Caffe backend
+----------------------------
+The caffe wrapping backend has the requirements caffe does.
+* Caffe can be built against OpenCV, if the caffe backend is enabled, a circular bependency arises.
+The simplest solution is to build caffe without support for OpenCV.
+* Only the OS supported by Caffe are supported by the backend. 
+The module has been developed in ubuntu 16.04 and OSX should also be supported.
+
+
+
+```bash
+#!/bin/bash
+SRCROOT="${HOME}/caffe_inst/"
+echo $SRCROOT
+mkdir -p "$SRCROOT"
+cd "$SRCROOT"
+git clone https://github.com/BVLC/caffe.git
+cd caffe
+cat Makefile.config.example  > Makefile.config
+echo 'USE_OPENCV := 0' >> Makefile.config
+echo 'INCLUDE_DIRS += /usr/include/hdf5/serial/' >> Makefile.config
+echo 'LIBRARY_DIRS += /usr/lib/x86_64-linux-gnu/hdf5/serial/' >> Makefile.config
+
+
+echo "--- /tmp/caffe/include/caffe/net.hpp	2017-05-28 04:55:47.929623902 +0200
++++ caffe/distribute/include/caffe/net.hpp	2017-05-28 04:51:33.437090768 +0200
+@@ -234,6 +234,7 @@
+ 
+     template <typename T>
+     friend class Net;
++    virtual ~Callback(){}
+   };
+   const vector<Callback*>& before_forward() const { return before_forward_; }
+   void add_before_forward(Callback* value) {
+">/tmp/patch_caffe
+
+
+make -j 6
+
+make pycaffe
+
+make distribute
+```
