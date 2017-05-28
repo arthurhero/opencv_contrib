@@ -67,18 +67,20 @@ The caffe wrapping backend has the requirements caffe does.
 * Caffe can be built against OpenCV, if the caffe backend is enabled, a circular bependency arises.
 The simplest solution is to build caffe without support for OpenCV.
 * Only the OS supported by Caffe are supported by the backend. 
-The module has been developed in ubuntu 16.04 and OSX should also be supported.
+The scripts describing the module have been developed in ubuntu 16.04 and assume such a system.
+Other UNIX systems including OSX should be easy to adapt.
 
-
+Sample script for building Caffe
 
 ```bash
 #!/bin/bash
 SRCROOT="${HOME}/caffe_inst/"
-echo $SRCROOT
 mkdir -p "$SRCROOT"
 cd "$SRCROOT"
 git clone https://github.com/BVLC/caffe.git
 cd caffe
+git checkout 91b09280f5233cafc62954c98ce8bc4c204e7475
+git branch 91b09280f5233cafc62954c98ce8bc4c204e7475
 cat Makefile.config.example  > Makefile.config
 echo 'USE_OPENCV := 0' >> Makefile.config
 echo 'INCLUDE_DIRS += /usr/include/hdf5/serial/' >> Makefile.config
@@ -95,7 +97,9 @@ echo "--- /tmp/caffe/include/caffe/net.hpp	2017-05-28 04:55:47.929623902 +0200
    };
    const vector<Callback*>& before_forward() const { return before_forward_; }
    void add_before_forward(Callback* value) {
-">/tmp/patch_caffe
+">/tmp/cleanup_caffe.diff
+
+patch < /tmp/cleanup_caffe.diff
 
 
 make -j 6
@@ -103,4 +107,15 @@ make -j 6
 make pycaffe
 
 make distribute
+```
+
+
+```bash
+#!/bin/bash
+cd $OPENCV_BUILD_DIR #You must set this
+CAFFEROOT="${HOME}/caffe_inst/" #If you used the previous code to compile Caffe in ubuntu 16.04
+
+cmake  -DCaffe_LIBS:FILEPATH="$CAFFEROOT/caffe/distribute/lib/libcaffe.so" -DBUILD_opencv_ts:BOOL="0" -DBUILD_opencv_dnn:BOOL="0" -DBUILD_opencv_dnn_modern:BOOL="0" -DCaffe_INCLUDE_DIR:PATH="$CAFFEROOT/caffe/distribute/include" -DWITH_MATLAB:BOOL="0" -DBUILD_opencv_cudabgsegm:BOOL="0"  -DWITH_QT:BOOL="1" -DBUILD_opencv_cudaoptflow:BOOL="0" -DBUILD_opencv_cudastereo:BOOL="0" -DBUILD_opencv_cudafilters:BOOL="0" -DBUILD_opencv_cudev:BOOL="1" -DOPENCV_EXTRA_MODULES_PATH:PATH="/home/anguelos/work/projects/opencv_gsoc/opencv_contrib/modules"   ./
+
+
 ```
