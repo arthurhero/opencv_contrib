@@ -66,19 +66,29 @@ namespace cv
 
             protected:
                 int resHeight_;
-                int maxResWidth_;
 
-                double italicProbabillity_;
-                double boldProbabillity_;
+                double bgProbability_[3];
+
+                double stretchProbabillity_[5];
+                double spacingProbabillity_[5];
 
                 double curvingProbabillity_;
-                double maxHeightDistortionPercentage_;
-                double maxCurveArch_;
 
-                double finalBlendAlpha_;
-                double finalBlendProb_;
+                double italicProbabillity_;
+                double weightProbabillity_[3];
 
-                TextSynthesizer(int maxSampleWidth,int sampleHeight);
+                double fontProbability_[3];
+
+                double blurryProbability_;
+
+
+                //independent properties
+                double blendProbability_ = 1;
+                double noiseProbability_ = 1;
+                double missingProbability_ = 0.5;
+                double rotatedProbability_ = 0.2;
+                
+                TextSynthesizer(int sampleHeight);
 
             public:
                 CV_WRAP int  getMaxSampleWidth () const {return maxResWidth_;}
@@ -171,26 +181,6 @@ namespace cv
                  */
                 CV_WRAP virtual void addBgSampleImage (const Mat& image) = 0;
 
-                /** @brief provides the data from which text colors are sampled
-                 *
-                 * @param clusters a 8UC3 Matrix whith three columns and N rows
-                 */
-                //CV_WRAP virtual void getColorClusters (CV_OUT Mat& clusters) const = 0;
-
-                /** @brief defines the data from which text colors are sampled.
-                 *
-                 * Text has three color parameters and in order to be able to sample a joined
-                 * distribution instead of independently sampled, colors are uniformly sampled
-                 * as color triplets from a fixed collection.
-                 * This function indirectly allows you to define arbitrary occurence
-                 * probabilities for every triplet by repeating it samples or polulating with
-                 * samples.
-                 *
-                 * @param clusters a matrix that must be 8UC3, must have 3 columns and any
-                 * number of rows. Text color is the first matrix color, border color is the
-                 * second  column and shadow color is the third color.
-                 */
-                //CV_WRAP virtual void setColorClusters (Mat clusters) = 0;
 
                 /** @brief provides a randomly selected patch exactly as they are provided to text
                  * syntheciser

@@ -15,9 +15,11 @@ helpStr="""Usage: """+sys.argv[0]+""" scenetext_segmented_word01.jpg scenetext_s
     """
 
 words=['PM','Charlie','Jerod','Anya','Titus']
-#words=[]
+fonts=['Chromaletter','cmmi10','eufm10','MathJax_Fraktur','Sans','Serif','URW Chancery L']
+bg_folder_path = '/home/chenziwe/testfiles/bg/complete/'
+bg_files=['1.jpg','2.jpg','3.jpg','4.jpg']
         
-s=cv2.text.TextSynthesizer_create(1000,400)
+s=cv2.text.TextSynthesizer_create(500,100)
 pause=200
 
 # GUI Callsback functions
@@ -41,12 +43,17 @@ def updateTime(x):
 def initialiseSynthesizers():
     global s
     global words
-    filenames=sys.argv[1:]
-    for fname in filenames:
-        img=cv2.imread(fname,cv2.IMREAD_COLOR)
+    global fonts
+    global bg_folder_path
+    global bg_files
+    for fname in bg_files:
+        img=cv2.imread(bg_folder_path+fname,cv2.IMREAD_COLOR)
         s.addBgSampleImage(img)
     s.setCurvingProbabillity(0)
     s.setSampleCaptions(words)
+    s.setAvailableFonts(fonts)
+    s.setBlendAlpha(0.1)
+    s.setBlendProb(1)
 
 # Other functions
 
