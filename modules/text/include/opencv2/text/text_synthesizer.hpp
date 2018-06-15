@@ -65,6 +65,7 @@ namespace cv
         class CV_EXPORTS_W TextSynthesizer{
 
             protected:
+                /*
                 int resHeight_;
 
                 double bgProbability_[3];
@@ -81,14 +82,29 @@ namespace cv
 
                 double blurryProbability_;
 
-
                 //independent properties
                 double blendProbability_ = 1;
                 double noiseProbability_ = 1;
                 double missingProbability_ = 0.5;
                 double rotatedProbability_ = 0.2;
-                
-                TextSynthesizer(int sampleHeight);
+
+                 */
+
+                int resHeight_;
+                int maxResWidth_;
+
+                double italicProbabillity_;
+                double boldProbabillity_;
+
+                double curvingProbabillity_;
+                double maxHeightDistortionPercentage_;
+                double maxCurveArch_;
+
+                double finalBlendAlpha_;
+                double finalBlendProb_;
+
+                //TextSynthesizer(int sampleHeight);
+                TextSynthesizer(int maxSampleWidth,int sampleHeight);
 
             public:
                 CV_WRAP int  getMaxSampleWidth () const {return maxResWidth_;}

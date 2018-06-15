@@ -350,7 +350,7 @@ namespace cv{
                     char font[50];
                     this->generateFont(font);
                     cout << font << endl;
-                    cout << caption << endl;
+                    //cout << caption << endl;
                     draw_text(cr,font,caption.c_str(),this->txtPad_,this->txtPad_);
 
                     //cairo_surface_write_to_png (surface, "/home/chenziwe/aaaaa.png");
@@ -402,7 +402,7 @@ namespace cv{
                         uint64 rndState = 0)
                     : TextSynthesizer(maxSampleWidth, sampleHeight)
                       , rng_(rndState != 0 ? rndState:std::time(NULL))
-                          , txtPad_(10) {
+                          , txtPad_(1) {
                               namedWindow("__w");
                               waitKey(1);
                               destroyWindow("__w");
@@ -458,7 +458,6 @@ namespace cv{
                 void generateTxtSample(CV_OUT Mat& sample,CV_OUT Mat& sampleMask){
                     if(sampleCaptions_.size()!=0){
                         String caption = sampleCaptions_[this->rng_.next()%sampleCaptions_.size()];
-                        cout << "caption " << caption << endl;
                         generateTxtPatch(sample,sampleMask,caption);
                     } else {
                         generateTxtPatch(sample,sampleMask,"Map");
@@ -483,18 +482,12 @@ namespace cv{
                     split(txtSample,txtChannels);
                     txtChannels.push_back(txtMask);
                     merge(txtChannels,txtMerged);
-                    cout << "adding curve" << endl;
                     addCurveDeformation(txtMerged,txtCurved);
-                    cout << "split curve" << endl;
                     split(txtCurved,txtChannels);
-                    cout << "get mask" << endl;
                     txtMask=txtChannels[3];
-                    cout << "pop back" << endl;
                     txtChannels.pop_back();
-                    cout << "merge back" << endl;
                     merge(txtChannels,txtSample);
 
-                    cout << "generating bg sample" << endl;
                     generateBgSample(bgSample);
                     bgSample.convertTo(floatBg, CV_32FC3, 1.0/255.0);
                     txtSample.convertTo(floatTxt, CV_32FC3, 1.0/255.0);
@@ -503,14 +496,10 @@ namespace cv{
 
                     sample=Mat(txtCurved.rows,txtCurved.cols,CV_32FC3);
 
-                    cout << "blend overlay" << endl;
                     blendOverlay(sample,floatTxt,bgResized,floatMask);
-                    cout << "width " << sample.cols << endl;
-                    cout << "height " << sample.rows << endl;
 
                     float blendAlpha=float(this->finalBlendAlpha_*(this->rng_.next()%1000)/1000.0);
                     if(this->rndProbUnder(this->finalBlendProb_)){
-                    cout << "blend weighted" << endl;
                         blendWeighted(sample,sample,bgResized,1-blendAlpha,blendAlpha);
                     }
                 }
