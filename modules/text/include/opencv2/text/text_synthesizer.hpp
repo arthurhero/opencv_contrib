@@ -62,34 +62,37 @@ namespace cv
          * - (Python) a demo generating some samples in Greek can be found in:
          * <https://github.com/Itseez/opencv_contrib/blob/master/modules/text/samples/text_synthesiser.py>
          */
+
+        enum BGType {Water, Bigland, Smallland};
+
         class CV_EXPORTS_W TextSynthesizer{
 
             protected:
-                /*
                 int resHeight_;
+                int resWidth_;
 
-                double bgProbability_[3];
+                double bgProbability_[2];
+                BGType bgType_;
 
-                double stretchProbabillity_[5];
-                double spacingProbabillity_[5];
+                double stretchProbability_[3][4];
+                double spacingProbability_[3][4];
 
-                double curvingProbabillity_;
+                double curvingProbability_[3];
 
-                double italicProbabillity_;
-                double weightProbabillity_[3];
+                double italicProbability_[3];
+                double weightProbability_[3][2];
 
-                double fontProbability_[3];
-
-                double blurryProbability_;
+                double fontProbability_[3][2];
 
                 //independent properties
-                double blendProbability_ = 1;
-                double noiseProbability_ = 1;
-                double missingProbability_ = 0.5;
-                double rotatedProbability_ = 0.2;
+                double missingProbability_;
+                double rotatedProbability_;
+                double rotatedAngle_;
 
-                 */
 
+                double finalBlendAlpha_;
+                double finalBlendProb_;
+                /*
                 int resHeight_;
                 int maxResWidth_;
 
@@ -100,58 +103,99 @@ namespace cv
                 double maxHeightDistortionPercentage_;
                 double maxCurveArch_;
 
-                double finalBlendAlpha_;
-                double finalBlendProb_;
+                */
 
-                //TextSynthesizer(int sampleHeight);
-                TextSynthesizer(int maxSampleWidth,int sampleHeight);
+                TextSynthesizer(int sampleHeight);
+                //TextSynthesizer(int maxSampleWidth,int sampleHeight);
 
             public:
-                CV_WRAP int  getMaxSampleWidth () const {return maxResWidth_;}
+                /*
                 CV_WRAP int  getSampleHeight () const {return resHeight_;}
+                CV_WRAP double*  getBgProbability () const {return bgProbability_;}
+                CV_WRAP double*  getStretchProbability () const {return stretchProbability_;}
+                CV_WRAP double*  getSpacingProbability () const {return spacingProbability_;}
+                CV_WRAP double  getCurvingProbability () const {return curvingProbability_;}
+                CV_WRAP double getItalicProbability () const {return italicProbability_;}
+                CV_WRAP double* getWeightProbability () const {return weightProbability_;}
+                CV_WRAP double* getFontProbability () const {return fontProbability_;}
+                CV_WRAP double getMissingProbability () const {return missingProbability_;}
+                CV_WRAP double getRotatedProbability () const {return rotatedProbability_;}
 
-                CV_WRAP double getItalicProballity () const {return italicProbabillity_;}
-                CV_WRAP double getBoldProbabillity () const {return boldProbabillity_;}
-                CV_WRAP double getCurvingProbabillity () const {return curvingProbabillity_;}
-                CV_WRAP double getMaxHeightDistortionPercentage () const {return maxHeightDistortionPercentage_;}
-                CV_WRAP double getMaxCurveArch () const {return maxCurveArch_;}
-                CV_WRAP double getBlendAlpha () const {return finalBlendAlpha_;}
-                CV_WRAP double getBlendProb () const {return finalBlendProb_;}
+                */
+                /**
+                 * @param v the probabilities for each category of the background the text will have
+                 */
+                /*
+                CV_WRAP void setBgProbability (double *v) {
+                    for (int i=0;i<3;i++) {
+                        CV_Assert(v[i] >= 0 && v[i] <= 1);
+                        bgProbability_[i] = v[i];
+                    }
+                }
+                */
+                /**
+                 * @param v the probabillities for each degree of stretchiness the text will have
+                 */
+                /*
+                CV_WRAP void setStretchProbability (double *v) {
+                    for (int i=0;i<5;i++) {
+                        CV_Assert(v[i] >= 0 && v[i] <= 1);
+                        stretchProbability_[i] = v[i];
+                    }
+                }
+*/
+                /**
+                 * @param v the probabillities for each degree of spacing the text will have
+                 */
+  /*
+                CV_WRAP void setSpacingProbability (double *v) {
+                    for (int i=0;i<5;i++) {
+                        CV_Assert(v[i] >= 0 && v[i] <= 1);
+                        spacingProbability_[i] = v[i];
+                    }
+                }
+*/
+                /**
+                 * @param v the probabillity the text will be curved
+                 */
+  //              CV_WRAP void setCurvingProbability (double v) {CV_Assert(v >= 0 && v <= 1); curvingProbability_ = v;}
 
                 /**
                  * @param v the probabillity the text will be generated with italic font instead of regular
                  */
-                CV_WRAP void setItalicProballity (double v) {CV_Assert(v >= 0 && v <= 1); italicProbabillity_ = v;}
+    //            CV_WRAP void setItalicProbability (double v) {CV_Assert(v >= 0 && v <= 1); italicProbability_ = v;}
 
                 /**
-                 * @param v the probabillity the text will be generated with italic font instead of regular
+                 * @param v the probabillities for each degree of boldness the text will have
                  */
-                CV_WRAP void setBoldProbabillity (double v) {CV_Assert(v >= 0 && v <= 1);boldProbabillity_ = v;}
+      /*
+                CV_WRAP void setWeightProbability (double *v) {
+                    for (int i=0;i<3;i++) {
+                        CV_Assert(v[i] >= 0 && v[i] <= 1);
+                        weightProbability_[i] = v[i];
+                    }
+                }
+*/
+                /**
+                 * @param v the probabillities for each category of font the text will have
+                 */
+  /*
+                CV_WRAP void setFontProbability (double *v) {
+                    for (int i=0;i<3;i++) {
+                        CV_Assert(v[i] >= 0 && v[i] <= 1);
+                        fontProbability_[i] = v[i];
+                    }
+                }
+*/
+                /**
+                 * @param v the probabillity the text will have missing spots
+                 */
+  //              CV_WRAP void setMissingProbability (double v) {CV_Assert(v >= 0 && v <= 1); missingProbability_ = v;}
 
                 /**
-                 * @param v the probabillity the text will be curved.
+                 * @param v the probabillity the text will be rotated
                  */
-                CV_WRAP void setCurvingProbabillity (double v) {CV_Assert(v >= 0 && v <= 1);curvingProbabillity_ = v;}
-
-                /**
-                 * @param v the maximum effect curving will have as a percentage of the samples height
-                 */
-                CV_WRAP void setMaxHeightDistortionPercentage (double v) {CV_Assert(v >= 0 && v <= 100);maxHeightDistortionPercentage_ = v;}
-
-                /**
-                 * @param v the arch in radians whose cosine will curve the text
-                 */
-                CV_WRAP void setMaxCurveArch (double v) {maxCurveArch_ = v;}
-
-                /**
-                 * @param v the maximum alpha used when blending text to the background with opacity
-                 */
-                CV_WRAP void setBlendAlpha (double v) {CV_Assert(v >= 0 && v <= 1); finalBlendAlpha_ = v;}
-
-                /**
-                 * @param v the probability the text will be blended with the background with alpha blending.
-                 */
-                CV_WRAP void setBlendProb (double v) {CV_Assert(v >= 0 && v <= 1); finalBlendProb_ = v;}
+    //            CV_WRAP void setRotatedProbability (double v) {CV_Assert(v >= 0 && v <= 1); rotatedProbability_ = v;}
 
                 /** @brief adds ttf fonts to the Font Database system
                  *
@@ -178,6 +222,9 @@ namespace cv
                  * are sampled. Only font families available in the system can be added.
                  */
                 CV_WRAP virtual void setAvailableFonts (std::vector<String>& fntList) = 0;
+                CV_WRAP virtual void setBlockyFonts (std::vector<String>& fntList) = 0;
+                CV_WRAP virtual void setRegularFonts (std::vector<String>& fntList) = 0;
+                CV_WRAP virtual void setCursiveFonts (std::vector<String>& fntList) = 0;
 
                 /** @brief set the collection of words to be displayed 
                  *
@@ -217,7 +264,7 @@ namespace cv
                  * @param sampleMask a result parameter which contains the alpha value which is usefull
                  * for overlaying the text sample on other images.
                  */
-                CV_WRAP virtual void generateTxtSample (CV_OUT Mat& sample, CV_OUT Mat& sampleMask) = 0;
+                CV_WRAP virtual void generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, CV_OUT Mat& sampleMask) = 0;
 
 
                 /** @brief generates a random text sample given a string
@@ -228,7 +275,7 @@ namespace cv
                  *
                  * @param sample the resulting text sample.
                  */
-                CV_WRAP virtual void generateSample (CV_OUT Mat& sample) = 0;
+                CV_WRAP virtual void generateSample (CV_OUT String &caption, CV_OUT Mat& sample) = 0;
 
                 /** @brief returns the name of the script beeing used
                  *
@@ -262,8 +309,7 @@ namespace cv
                  * @param script an enumaration which is used to constrain the available fonts
                  * to the ones beeing able to render strings in that script.
                  */
-                CV_WRAP static Ptr<TextSynthesizer> create (int sampleHeight = 50,
-                        int maxWidth = 600);
+                CV_WRAP static Ptr<TextSynthesizer> create (int sampleHeight = 50);
 
                 virtual ~TextSynthesizer () {}
         };

@@ -15,15 +15,19 @@ helpStr="""Usage: """+sys.argv[0]+""" scenetext_segmented_word01.jpg scenetext_s
     """
 
 words=['PM','Charlie','Jerod','Anya','Titus']
-fonts=['Chromaletter','cmmi10','eufm10','MathJax_Fraktur','Sans','Serif','URW Chancery L']
+#fonts=['Chromaletter','cmmi10','eufm10','MathJax_Fraktur','Sans','Serif','URW Chancery L']
+blocky_fonts=['Chromaletter','MathJax_Fraktur','eufm10']
+regular_fonts=['cmmi10','Sans','Serif']
+cursive_fonts=['URW Chancery L']
 bg_folder_path = '/home/chenziwe/testfiles/bg/complete/'
 bg_files=['1.jpg','2.jpg','3.jpg','4.jpg']
         
-s=cv2.text.TextSynthesizer_create(500,100)
+s=cv2.text.TextSynthesizer_create(50)
 pause=200
 
 # GUI Callsback functions
 
+'''
 def updateCurvProb(x):
     global s
     s.setCurvingProbabillity(x/100.0)
@@ -35,6 +39,7 @@ def updateCurvPerc(x):
 def updateCurvArch(x):
     global s
     s.setMaxCurveArch(x/500.0)
+'''
 
 def updateTime(x):
     global pause
@@ -49,11 +54,16 @@ def initialiseSynthesizers():
     for fname in bg_files:
         img=cv2.imread(bg_folder_path+fname,cv2.IMREAD_COLOR)
         s.addBgSampleImage(img)
-    s.setCurvingProbabillity(0)
     s.setSampleCaptions(words)
-    s.setAvailableFonts(fonts)
+
+    s.setBlockyFonts(blocky_fonts)
+    s.setRegularFonts(regular_fonts)
+    s.setCursiveFonts(cursive_fonts)
+    '''
+    s.setCurvingProbabillity(0)
     s.setBlendAlpha(0.1)
     s.setBlendProb(1)
+    '''
 
 # Other functions
 
@@ -63,17 +73,21 @@ def initWindows():
     cv2.namedWindow('Text Synthesizer Demo',cv2.WINDOW_NORMAL)
     cv2.resizeWindow('Text Synthesizer Demo',1000,500)
     cv2.moveWindow('Text Synthesizer Demo',100,100)
+    '''
     cv2.createTrackbar('Curve Prob.','Text Synthesizer Demo',int(s.getCurvingProbabillity()*100),100,updateCurvProb)
     cv2.createTrackbar('Curve %','Text Synthesizer Demo',int(s.getMaxHeightDistortionPercentage()),10,updateCurvPerc)
     cv2.createTrackbar('Curve rad.','Text Synthesizer Demo',int(s.getMaxCurveArch()*500),100,updateCurvArch)
+    '''
     cv2.createTrackbar('Pause ms','Text Synthesizer Demo',int(pause),500,updateTime)
 
 def updateTrackbars():
     global s
     global pause
+    '''
     cv2.setTrackbarPos('Curve Prob.','Text Synthesizer Demo',int(s.getCurvingProbabillity()*100))
     cv2.setTrackbarPos('Curve %','Text Synthesizer Demo',int(s.getMaxHeightDistortionPercentage()))
     cv2.setTrackbarPos('Curve rad.','Text Synthesizer Demo',int(s.getMaxCurveArch()*500))
+    '''
     cv2.setTrackbarPos('Pause ms','Text Synthesizer Demo',int(pause))
 
 def guiLoop():
@@ -82,8 +96,9 @@ def guiLoop():
     k=''
     while ord('q')!=k:
         if pause<500:
-            mat=s.generateSample()
+            caption,mat=s.generateSample()
             cv2.imshow('Text Synthesizer Demo',mat)
+            print caption
         k=cv2.waitKey(pause+1)
 
 # Main Programm
