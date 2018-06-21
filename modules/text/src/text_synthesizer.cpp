@@ -136,23 +136,31 @@ namespace cv{
                 RNG rng_;//Randon number generator used for all distributions
                 int height = cairo_image_surface_get_height(text);
                 int width = cairo_image_surface_get_width(text);
-                int prob = degree * 10; //0~50
+                int prob = degree * 5; //0~50
                 unsigned char *data;
                 data = cairo_image_surface_get_data(text);
 
+                cairo_surface_flush(text);
+                unsigned char tmp;
                 for (int r=0;r<height;r++) {
                     for (int c=0;c<width;c++) {
-                        if (rng_.next()%100<prob){
-                            data[r*width+c]=min(data[r*width+c],(unsigned char)(rng_.next()%56+200));
+                        if (rng_.next()%100<prob && data[(r*width+c)*4+3]!=0){
+                            tmp = rng_.next()%56; 
+                            data[(r*width+c)*4]+=tmp;
+                            data[(r*width+c)*4+1]+=tmp; 
+                            data[(r*width+c)*4+2]+=tmp; 
+                            //data[(r*width+c)*4+3]=255; 
                         }
                     }
                 }
+                cairo_surface_mark_dirty(text);
             }
 
             void addMissingSpots (cairo_surface_t *text, int degree){
                 RNG rng_;//Randon number generator used for all distributions
                 int height = cairo_image_surface_get_height(text);
                 int width = cairo_image_surface_get_width(text);
+
                 double prob; //0~100
                 unsigned char *data, *data_t;
                 int stride = cairo_format_stride_for_width(CAIRO_FORMAT_A8, width);
@@ -188,15 +196,24 @@ namespace cv{
                         }
                     }
                 }
-                //cairo_surface_t *mask;
-                //mask = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_A8, WIDTH, HEIGHT,stride);
 
+                //cairo_surface_t *mask;
+                //mask = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_A8, width, height,stride);
+
+                cairo_surface_flush(text);
                 data_t = cairo_image_surface_get_data(text);
                 for (int r=0;r<height;r++) {
                     for (int c=0;c<width;c++) {
+                        if (data[r*width+c] == 0) {
+                            data_t[(r*width+c)*4]=0; 
+                            data_t[(r*width+c)*4+1]=0; 
+                            data_t[(r*width+c)*4+2]=0; 
+                            data_t[(r*width+c)*4+3]=0; 
+                        }
                         data_t[r*width+c]=min(data_t[r*width+c],data[r*width+c]);
                     }
                 }
+                cairo_surface_mark_dirty(text);
 
                 free(data);
             }
@@ -384,8 +401,8 @@ TextSynthesizer::TextSynthesizer(int sampleHeight):
 
 
     //independent properties
-    missingProbability_=0.4;
-    rotatedProbability_=1;
+    missingProbability_=0.2;
+    rotatedProbability_=0.3;
 
     finalBlendAlpha_=0.9;
     finalBlendProb_=0;
@@ -508,7 +525,7 @@ class TextSynthesizerImpl: public TextSynthesizer{
         void generateTxtPatch(Mat& output,Mat& outputMask,String caption){
             size_t len = caption.length();
             if (this->rndProbUnder(this->rotatedProbability_)){
-                int degree = this->rng_.next()%31-15;
+                int degree = this->rng_.next()%21-10;
                 cout << "degree " << degree << endl;
                 this->rotatedAngle_=((double)degree/180)*3.14;
             } else {
@@ -723,10 +740,10 @@ class TextSynthesizerImpl: public TextSynthesizer{
             cairo_rectangle(cr_n, 0, 0, patchWidth, this->resHeight_);
             cairo_fill(cr_n);
 
-            //addNoise(surface_n,2);
+            addNoise(surface_n,1);
 
             if(this->rndProbUnder(this->missingProbability_)){
-                addMissingSpots(surface_n,5);
+                addMissingSpots(surface_n,1);
             }
 
             //cairo_surface_write_to_png (surface, "/home/chenziwe/aaaaa.png");
@@ -833,6 +850,12 @@ class TextSynthesizerImpl: public TextSynthesizer{
             }
         }
 
+        void generateBgSample2(CV_OUT Mat& sample, int width){
+            Mat res(this->resHeight_, width,CV_8UC3);
+            res.setTo(cv::Scalar(189,220,249));
+            res.copyTo(sample);
+        }
+
         void generateTxtSample(CV_OUT String &caption, CV_OUT Mat& sample,CV_OUT Mat& sampleMask){
             if(sampleCaptions_.size()!=0){
                 caption = sampleCaptions_[this->rng_.next()%sampleCaptions_.size()];
@@ -886,17 +909,13 @@ class TextSynthesizerImpl: public TextSynthesizer{
             merge(txtChannels,txtSample);
 
             cout << "generating bg sample" << endl;
-            generateBgSample(bgSample);
+            generateBgSample2(bgSample, txtSample.cols);
             cout << "finished generating bg sample" << endl;
 
             bgSample.convertTo(floatBg, CV_32FC3, 1.0/255.0);
             txtSample.convertTo(floatTxt, CV_32FC3, 1.0/255.0);
             txtMask.convertTo(floatMask, CV_32FC1, 1.0/255.0);
-            cout << "before resize " << txtSample.cols << endl;
-            cout << "bg width " << bgSample.cols << endl;
-            cout << "bg width float " << floatBg.cols << endl;
-            bgResized=floatBg.colRange(0,txtSample.cols);
-            cout << "after resize" << endl;
+            bgResized=floatBg;
 
             sample=Mat(txtCurved.rows,txtCurved.cols,CV_32FC3);
 
