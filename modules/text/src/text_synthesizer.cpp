@@ -788,8 +788,6 @@ class TextSynthesizerImpl: public TextSynthesizer{
         std::vector<String> cursiveFonts_;
         std::vector<String> availableFonts_;
         std::vector<String> sampleCaptions_;
-        std::vector<String> availableBgSampleFiles_;
-        std::vector<Mat> availableBgSampleImages_;
 
     public:
         TextSynthesizerImpl(
@@ -817,40 +815,7 @@ class TextSynthesizerImpl: public TextSynthesizer{
             this->rng_.state=state.ptr<uint64>(0)[0];
         }
 
-        void generateBgSample(CV_OUT Mat& sample){
-            if(this->availableBgSampleImages_.size()!=0){
-                Mat& img=availableBgSampleImages_[this->rng_.next()%availableBgSampleImages_.size()];
-                int left=this->rng_.next()%(img.cols-resWidth_);
-                int top=this->rng_.next()%(img.rows-resHeight_);
-                img.colRange(Range(left,left+resWidth_)).rowRange(Range(top,top+resHeight_)).copyTo(sample);
-            }else{
-                if(this->availableBgSampleFiles_.size()==0){
-                    Mat res(this->resHeight_,this->resWidth_,CV_8UC3);
-                    this->rng_.fill(res,RNG::UNIFORM,0,256);
-                    res.copyTo(sample);
-                }else{
-                    Mat img;
-                    img=imread(this->availableBgSampleFiles_[this->rng_.next()%availableBgSampleFiles_.size()].c_str(),IMREAD_COLOR);
-                    CV_Assert(img.data != NULL);
-                    CV_Assert(img.cols>resWidth_ && img.rows> resHeight_);
-                    int left=this->rng_.next()%(img.cols-resWidth_);
-                    int top=this->rng_.next()%(img.rows-resHeight_);
-                    img.colRange(Range(left,left+resWidth_)).rowRange(Range(top,top+resHeight_)).copyTo(sample);
-                }
-            }
-            if(sample.channels()==4){
-                Mat rgb;
-                cvtColor(sample,rgb,COLOR_RGBA2RGB);
-                sample=rgb;
-            }
-            if(sample.channels()==1){
-                Mat rgb;
-                cvtColor(sample,rgb,COLOR_GRAY2RGB);
-                sample=rgb;
-            }
-        }
-
-        void generateBgSample2(CV_OUT Mat& sample, int width){
+        void generateBgSample(CV_OUT Mat& sample, int width){
             Mat res(this->resHeight_, width,CV_8UC3);
             res.setTo(cv::Scalar(189,220,249));
             res.copyTo(sample);
@@ -909,7 +874,7 @@ class TextSynthesizerImpl: public TextSynthesizer{
             merge(txtChannels,txtSample);
 
             cout << "generating bg sample" << endl;
-            generateBgSample2(bgSample, txtSample.cols);
+            generateBgSample(bgSample, txtSample.cols);
             cout << "finished generating bg sample" << endl;
 
             bgSample.convertTo(floatBg, CV_32FC3, 1.0/255.0);
@@ -937,40 +902,11 @@ class TextSynthesizerImpl: public TextSynthesizer{
             this->sampleCaptions_ = words;
         }
 
-        virtual void addBgSampleImage(const Mat& inImg){
-            CV_Assert(inImg.cols>=resWidth_ && inImg.rows>= resHeight_);
-            Mat img;
-            switch(inImg.type()){
-                case CV_8UC1: {
-                                  cvtColor(inImg, img, COLOR_GRAY2RGBA);
-                                  break;
-                              }
-                case CV_8UC3: {
-                                  cvtColor(inImg, img, COLOR_RGB2RGBA);
-                                  break;
-                              }
-                case CV_8UC4: {
-                                  inImg.copyTo(img);
-                                  break;
-                              }
-                default:{
-                            CV_Error(Error::StsError,
-                                    "Only uchar images of 1, 3, or 4 channels are accepted");
-                        }
-            }
-            this->availableBgSampleImages_.push_back(img);
-        }
-
         //TOOODOOOO
         void addFontFiles(const std::vector<cv::String>& fntList){
             this->updateFontNameList(this->availableFonts_);
         }
 
-        std::vector<String> listBgSampleFiles(){
-            std::vector<String> res(this->availableBgSampleFiles_.size());
-            std::copy(this->availableBgSampleFiles_.begin(),this->availableBgSampleFiles_.end(),res.begin());
-            return res;
-        }
 };
 
 Ptr<TextSynthesizer> TextSynthesizer::create(int sampleHeight){

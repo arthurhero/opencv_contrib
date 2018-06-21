@@ -19,8 +19,6 @@ words=['PM','Charlie','Jerod','Anya','Titus']
 blocky_fonts=['Chromaletter','MathJax_Fraktur','eufm10']
 regular_fonts=['cmmi10','Sans','Serif']
 cursive_fonts=['URW Chancery L']
-bg_folder_path = '/home/chenziwe/testfiles/bg/complete/'
-bg_files=['1.jpg','2.jpg','3.jpg','4.jpg']
         
 s=cv2.text.TextSynthesizer_create(50)
 pause=200
@@ -49,11 +47,6 @@ def initialiseSynthesizers():
     global s
     global words
     global fonts
-    global bg_folder_path
-    global bg_files
-    for fname in bg_files:
-        img=cv2.imread(bg_folder_path+fname,cv2.IMREAD_COLOR)
-        s.addBgSampleImage(img)
     s.setSampleCaptions(words)
 
     s.setBlockyFonts(blocky_fonts)

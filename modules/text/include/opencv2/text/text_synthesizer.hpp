@@ -232,25 +232,13 @@ namespace cv
                  */
                 CV_WRAP virtual void setSampleCaptions (std::vector<String>& words) = 0;
 
-                /** @brief appends an image in to the collection of images from which
-                 * backgrounds are sampled.
-                 *
-                 * This function indirectly allows you to define arbitrary occurence
-                 * probabilities. Since background images are uniformly sampled from this
-                 * list if an image is repeated, its occurence probabillity doubles.
-                 *
-                 * @param image an image to be inserted. It should be an 8UC3 matrix which
-                 * must be least bigger than the generated samples.
-                 */
-                CV_WRAP virtual void addBgSampleImage (const Mat& image) = 0;
-
 
                 /** @brief provides a randomly selected patch exactly as they are provided to text
                  * syntheciser
                  *
                  * @param sample a result variable containing a 8UC3 matrix.
                  */
-                CV_WRAP virtual void generateBgSample (CV_OUT Mat& sample) = 0;
+                CV_WRAP virtual void generateBgSample (CV_OUT Mat& sample, int width) = 0;
 
                 /** @brief provides the randomly rendered text with border and shadow.
                  *
