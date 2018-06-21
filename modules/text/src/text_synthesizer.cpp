@@ -5,6 +5,7 @@
 #include "opencv2/calib3d.hpp"
 
 #include "opencv2/text/text_synthesizer.hpp"
+#include "opencv2/text/text_transformations.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -219,33 +220,8 @@ namespace cv{
             }
 
 
+            TextTransformations tt;
 
-            /*
-               static void draw_text (cairo_t *cr, const char *font, const char *text, int x, int y){
-
-               PangoLayout *layout;
-               PangoFontDescription *desc;
-
-               cairo_translate (cr, x, y);
-
-               layout = pango_cairo_create_layout (cr);
-
-               pango_layout_set_text (layout, text, -1);
-               desc = pango_font_description_from_string (font);
-               pango_layout_set_font_description (layout, desc);
-               pango_font_description_free (desc);
-
-               cairo_save (cr);
-
-//Just black
-cairo_set_source_rgb (cr, 0, 0, 0);
-pango_cairo_show_layout (cr, layout);
-
-cairo_restore (cr);
-
-g_object_unref (layout);
-}
-             */
 
 }//unnamed namespace
 
@@ -402,7 +378,7 @@ TextSynthesizer::TextSynthesizer(int sampleHeight):
 
     //independent properties
     missingProbability_=0.2;
-    rotatedProbability_=0.3;
+    rotatedProbability_=0;
 
     finalBlendAlpha_=0.9;
     finalBlendProb_=0;
@@ -538,17 +514,27 @@ class TextSynthesizerImpl: public TextSynthesizer{
 
             double *spacingProb;
             double *stretchProb;
+            double curvingProb;
             if (this->bgType_==Water) {
                 spacingProb=this->spacingProbability_[0];
                 stretchProb=this->stretchProbability_[0];
+                curvingProb=this->curvingProbability_[0];
             }
             else if (this->bgType_==Bigland) {
                 spacingProb=this->spacingProbability_[1];
                 stretchProb=this->stretchProbability_[1];
+                curvingProb=this->curvingProbability_[1];
             } else {
                 spacingProb=this->spacingProbability_[2];
                 stretchProb=this->stretchProbability_[2];
+                curvingProb=this->curvingProbability_[2];
             } 
+
+
+            bool curved = false;
+            if(this->rndProbUnder(curvingProb)){
+                curved = true;
+            }
 
 
             //get spacing degree
@@ -716,11 +702,15 @@ class TextSynthesizerImpl: public TextSynthesizer{
                 ink_x=ink_x*height_ratio+1;
                 cairo_translate (cr, -ink_x, -ink_y);
                 pango_cairo_show_layout (cr, layout);
+            } else if (curved) {
+                cairo_path_t *path;
+                PangoLayoutLine *line;
+                tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,10,0,3,349456);
+                cairo_fill_preserve (cr);
             } else {
                 cairo_translate (cr, -ink_x, -ink_y);
                 pango_cairo_show_layout (cr, layout);
             }
-
 
             //free layout
             g_object_unref(layout);

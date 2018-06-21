@@ -45,7 +45,6 @@
 #define TEXT_SYNTHESIZER_HPP
 
 
-
 namespace cv
 {
     namespace text
@@ -92,18 +91,6 @@ namespace cv
 
                 double finalBlendAlpha_;
                 double finalBlendProb_;
-                /*
-                int resHeight_;
-                int maxResWidth_;
-
-                double italicProbabillity_;
-                double boldProbabillity_;
-
-                double curvingProbabillity_;
-                double maxHeightDistortionPercentage_;
-                double maxCurveArch_;
-
-                */
 
                 TextSynthesizer(int sampleHeight);
                 //TextSynthesizer(int maxSampleWidth,int sampleHeight);

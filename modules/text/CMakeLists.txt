@@ -10,6 +10,10 @@ endmacro(use_cxx11)
 
 use_cxx11()
 
+SET(TARGET_SRC
+    text_transformations.cpp
+    )
+
 set(the_description "Text Detection and Recognition")
 ocv_define_module(text opencv_ml opencv_highgui opencv_imgproc opencv_core opencv_features2d opencv_calib3d WRAP python)
 
