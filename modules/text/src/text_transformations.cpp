@@ -495,19 +495,20 @@ TextTransformations::points_to_arc_path(cairo_t *cr, std::vector<coords> points,
 
   if(direction == 1) {
     // top of circle, so arc origin is below canvas
-    origin = std::make_pair(width/2, height/2 + radius); 
+    double delta_y = sqrt(radius * radius - (width/2) * (width/2)); //pythagorean theorum
+    origin = std::make_pair(width/2, height + delta_y); 
 
-    end_angle = -asin(fabs(start.second - origin.second)/radius);
-    start_angle = -(M_PI - asin(fabs(end.second - origin.second)/radius));
+    end_angle = -asin(fabs(end.second - origin.second)/radius);
+    start_angle = -(M_PI - asin(fabs(start.second - origin.second)/radius));
     cairo_arc(cr, origin.first, origin.second, radius, start_angle, end_angle);
 
   } else { // direction == 0 (default)
     // bottom of circle, so arc origin is above canvas
-    origin = std::make_pair(width/2, height/2 - radius); 
+    origin = std::make_pair(width/2, height - radius); 
  
-    end_angle = asin(fabs(start.second - origin.second)/radius); 
-    start_angle = M_PI - asin(fabs(end.second - origin.second)/radius);
-    //end and start angles were switched and arc in negative direction to keep text right-side up
+    end_angle = asin(fabs(end.second - origin.second)/radius); 
+    start_angle = M_PI - asin(fabs(start.second - origin.second)/radius);
+    //swithced to arc in negative direction to keep text right-side up
     cairo_arc_negative(cr, origin.first, origin.second, radius, start_angle, end_angle);
   }
 }
@@ -515,35 +516,40 @@ TextTransformations::points_to_arc_path(cairo_t *cr, std::vector<coords> points,
 
 std::vector<coords>
 TextTransformations::make_points_arc(double width, double height, double radius, short direction) {
- 
+
+  if (radius < .5 * width) radius = .5 * width; // verify preconditions
+  
+  double next_angle;
   std::vector<coords> points;
-  if (radius < .5 * width) return points; // verify preconditions
   double x, y;
   double theta = asin(width / (2 * radius)); //find the angle between the center point of 
-  //the canvas and the point where the circle 
-  //intersects the edge of the canvas
-  double next_angle;
+                                             //the canvas and the point where the circle 
+                                             //intersects the edge of the canvas
 
-  if (direction == 1) { //top of circle  
-    next_angle = 3 * M_PI/2 + theta;
-    //push points onto vector with angular incrementations of theta/2 
-    for(int i = 0; i < 5; i++, next_angle -= theta/2) {
-      //find next point on the arc using parametric equation of a circle
-      x = (.5 * width) + (radius * cos(next_angle));
-      y = (.5 * height + radius) + (radius * sin(next_angle));
-      points.push_back(std::make_pair(x,y));
-    }
-
-  } else /* direction == 0 */ { //bottom of circle (default)
+  if (direction == 1) { //top of circle
+    double delta_y = sqrt(radius * radius - (width/2) * (width/2)); //pythagorean theorum
+    //find first edge of the arc using parametric equation of a circle  
     next_angle = M_PI/2 - theta;
-    //push points onto vector with angular incrementations of theta/2 
-    for(int i = 0; i < 5; i++, next_angle += theta/2) {
-      //find next point on the arc using parametric equation of a circle
-      x = (.5 * width) + (radius * cos(next_angle));
-      y = (.5 * height - radius) + (radius * sin(next_angle));
-      points.push_back(std::make_pair(x,y));
-    }
+    x = (.5 * width) + (radius * cos(next_angle));
+    y = (height + delta_y) + (radius * sin(next_angle));
+    points.push_back(std::make_pair(x,y));
+    
+    //find second edge of the arc using parametric equation of a circle
+    next_angle = next_angle + 2 * theta;
+    x = (.5 * width) + (radius * cos(next_angle));
+    y = (height + delta_y) + (radius * sin(next_angle));
+    points.push_back(std::make_pair(x,y));
 
+  } else /* direction == 0 */ { //bottom of circle   
+    // first edge of arc in top right
+    x = width;
+    y = 0;
+    points.push_back(std::make_pair(x,y));
+    
+    // second edge of arc in top left
+    x = 0;
+    y = 0;
+    points.push_back(std::make_pair(x,y));
   }
   return points;
 }
@@ -564,15 +570,15 @@ TextTransformations::make_points_wave(double width, double height, int num_point
 
   //created num_points x,y coords
   for(int i = num_points - 1; i >= 0; i--) {
-    //y variance of +- 1/8 height
-    y_variance = (rand() % (int) ((1.0/8.0) * height)) - (rand() % (int) ((1.0/8.0) * height));
+    //y variance of + 0 to 1/8 height
+    y_variance = (rand() % (int) ((1.0/8.0) * height));
 
     //x variance of +- 1/8 (width/num_points - 1)
     x_variance = (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))))
       - (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))));
 
     x = x_variance + ((width / (num_points - 1)) * i);
-    y = y_variance + (height / 2);
+    y = height - y_variance; //ensure points stay above the bottom of the canvas
 
     coords new_point(x,y);
     points.push_back(new_point);

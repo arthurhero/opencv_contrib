@@ -44,6 +44,7 @@
 #ifndef TEXT_SYNTHESIZER_HPP
 #define TEXT_SYNTHESIZER_HPP
 
+using namespace std;
 
 namespace cv
 {
@@ -63,6 +64,8 @@ namespace cv
          */
 
         enum BGType {Water, Bigland, Smallland};
+        enum BGType4 {Flow, Waterbody, Big, Small};
+        enum BGFeature {Colordiff, Distracttext, Boundry, Colorblob, Straight, Bggird, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
 
         class CV_EXPORTS_W TextSynthesizer{
 
@@ -72,7 +75,9 @@ namespace cv
 
                 double bgProbability_[2];
                 BGType bgType_;
+                BGType4 bgType4_;
 
+                //text features
                 double stretchProbability_[3][4];
                 double spacingProbability_[3][4];
 
@@ -83,14 +88,35 @@ namespace cv
 
                 double fontProbability_[3][2];
 
-                //independent properties
+                //independent text properties
                 double missingProbability_;
                 double rotatedProbability_;
                 double rotatedAngle_;
 
+                //bg features
+                double colordiffProb_[4];
+                double distracttextProb_[4];
+                double boundryProb_[4];
+                double colorblobProb_[4];
+                double gridProb_[4];
+                double straightlineProb_[4];
+                double citypointProb_[4];
+                double parallelProb_[4];
+                double vparallelProb_[4];
+                double mountainProb_[4];
+                double railroadProb_[4];
+                double riverlineProb_[4];
+
 
                 double finalBlendAlpha_;
                 double finalBlendProb_;
+
+                //max num of bg features each bg4 type can have
+                int flow_n;
+                int water_n;
+                int bigland_n;
+                int smallland_n;
+
 
                 TextSynthesizer(int sampleHeight);
                 //TextSynthesizer(int maxSampleWidth,int sampleHeight);
@@ -219,14 +245,6 @@ namespace cv
                  */
                 CV_WRAP virtual void setSampleCaptions (std::vector<String>& words) = 0;
 
-
-                /** @brief provides a randomly selected patch exactly as they are provided to text
-                 * syntheciser
-                 *
-                 * @param sample a result variable containing a 8UC3 matrix.
-                 */
-                CV_WRAP virtual void generateBgSample (CV_OUT Mat& sample, int width) = 0;
-
                 /** @brief provides the randomly rendered text with border and shadow.
                  *
                  * @param caption the string which will be rendered. Multilingual strings in
@@ -239,7 +257,7 @@ namespace cv
                  * @param sampleMask a result parameter which contains the alpha value which is usefull
                  * for overlaying the text sample on other images.
                  */
-                CV_WRAP virtual void generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, CV_OUT Mat& sampleMask) = 0;
+                CV_WRAP virtual void generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, CV_OUT Mat& sampleMask, int text_color) = 0;
 
 
                 /** @brief generates a random text sample given a string
