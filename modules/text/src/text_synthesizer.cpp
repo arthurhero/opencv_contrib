@@ -157,18 +157,19 @@ namespace cv{
 
                 cairo_surface_flush(text);
                 unsigned char tmp;
+                int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width);
                 for (int r=0;r<height;r++) {
-                    for (int c=0;c<width;c++) {
-                        if (rng_.next()%100<prob && data[(r*width+c)*4+3]!=0){
+                    for (int c=0;c<stride;c+=4) {
+                        if (rng_.next()%100<prob && data[(r*stride+c)+3]!=0){
                             tmp = rng_.next()%56; 
-                            data[(r*width+c)*4]+=tmp;
-                            data[(r*width+c)*4+1]+=tmp; 
-                            data[(r*width+c)*4+2]+=tmp; 
-                            //data[(r*width+c)*4+3]=255; 
+                            data[r*stride+c]+=tmp;
+                            data[r*stride+c+1]+=tmp;
+                            data[r*stride+c+2]+=tmp;
                         }
                     }
                 }
                 cairo_surface_mark_dirty(text);
+                cairo_surface_flush(text);
             }
 
             void addSpots (cairo_surface_t *text, int degree, bool trans, int color){
@@ -186,13 +187,14 @@ namespace cv{
                 double rads[pnum];
 
                 for (int i=0;i<pnum;i++) {
-                    xs[i]=rng_.next()%width;
+                    xs[i]=rng_.next()%stride;
                     ys[i]=rng_.next()%height;
                     rads[i]=rng_.next()%(height/(12-degree));
-                    for (int r=0;r<height;r++) {
-                        for (int c=0;c<width;c++) {
-                            data[r*width+c]=255;
-                        }
+                }
+
+                for (int r=0;r<height;r++) {
+                    for (int c=0;c<stride;c++) {
+                        data[r*stride+c]=0;
                     }
                 }
 
@@ -201,42 +203,46 @@ namespace cv{
                     int y = ys[i];
                     double rad = rads[i];
                     for (int r=0;r<height;r++) {
-                        for (int c=0;c<width;c++) {
+                        for (int c=0;c<stride;c++) {
                             double dis = pow(pow((double)(r-y),2)+pow((double)(c-x),2),0.5);
                             prob=100-(100/(1+100*pow(M_E,-(dis-rad))));
                             if (rng_.next()%100 < prob) {
-                                data[r*width+c]=0;
+                                data[r*stride+c]=255;
                             }
                         }
                     }
                 }
 
-                //cairo_surface_t *mask;
-                //mask = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_A8, width, height,stride);
-
-                cairo_surface_flush(text);
-                data_t = cairo_image_surface_get_data(text);
-                for (int r=0;r<height;r++) {
-                    for (int c=0;c<width;c++) {
-                        if (data[r*width+c] == 0) {
-                            if (trans) {
-                                data_t[(r*width+c)*4]=0; 
-                                data_t[(r*width+c)*4+1]=0; 
-                                data_t[(r*width+c)*4+2]=0; 
-                                data_t[(r*width+c)*4+3]=0; 
-                            } else {
-                                data_t[(r*width+c)*4]=color; 
-                                data_t[(r*width+c)*4+1]=color; 
-                                data_t[(r*width+c)*4+2]=color; 
-                                data_t[(r*width+c)*4+3]=255; 
+                if (trans) {
+                    //cairo_surface_flush(text);
+                    data_t = cairo_image_surface_get_data(text);
+                    int stride_t = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width);
+                    for (int r=0;r<height;r++) {
+                        for (int c=0;c<stride;c++) {
+                            if (data[r*stride+c] == 255) {
+                                if (c*4+3<stride_t) {
+                                    data_t[r*stride_t+c*4+3]=0; 
+                                }
                             }
                         }
-                        data_t[r*width+c]=min(data_t[r*width+c],data[r*width+c]);
                     }
+                    cairo_surface_mark_dirty(text);
+                    cairo_surface_flush(text);
+                    free(data);
+                } else {
+                    cairo_surface_t *mask;
+                    mask = cairo_image_surface_create_for_data(data, CAIRO_FORMAT_A8, width, height,stride);
+                    cairo_t *cr;
+                    cr = cairo_create (text);
+                    cout << "color " << color << endl;
+                    cairo_set_source_rgb(cr,color/255.0,color/255.0,color/255.0);
+                    cairo_mask_surface(cr, mask, 0, 0);
+                    cout << "ref count " << cairo_get_reference_count(cr) << endl;
+                    cairo_destroy (cr);
+                    cout << "ref count " << cairo_surface_get_reference_count(mask) << endl;
+                    cairo_surface_destroy (mask);
                 }
-                cairo_surface_mark_dirty(text);
 
-                free(data);
             }
 
 
@@ -704,8 +710,10 @@ namespace cv{
                     double textWidth, textHeight;
                     ink_w=stretch_deg*(ink_w);
                     int patchWidth = (int)ink_w;
+                    cout << "patch width " << patchWidth << endl;
 
                     activate_stretch_filter(cr, stretch_deg, 1);
+                    cout << "after stretch" << endl;
                     if (this->rotatedAngle_!=0) {
                         cout << "rotated angle" << this->rotatedAngle_ << endl;
                         cairo_rotate(cr, this->rotatedAngle_);
@@ -752,10 +760,12 @@ namespace cv{
                         pango_font_description_set_size(desc, size);
                         pango_layout_set_font_description (layout, desc);
                         if (this->rng_.next()%2==0) {
+                            cout << "before tt" << endl;
                             tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
                         } else {
                             tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
                         }
+                        cout << "after tt" << endl;
                         cairo_fill_preserve (cr);
                     } else {
                         cairo_translate (cr, -ink_x, -ink_y);
@@ -763,12 +773,16 @@ namespace cv{
                     }
 
                     //free layout
+                    cout << "freeing" << endl;
                     g_object_unref(layout);
                     pango_font_description_free (desc);
                     free(logical_rect);
                     free(ink_rect);
 
                     cairo_identity_matrix(cr);
+                    cout << "destroy cr" << endl;
+                    cout << "ref count " << cairo_get_reference_count(cr) << endl;
+                    cairo_destroy (cr);
 
                     cairo_surface_t *surface_n;
                     cairo_t *cr_n;
@@ -780,24 +794,41 @@ namespace cv{
                     cairo_rectangle(cr_n, 0, 0, patchWidth, this->resHeight_);
                     cairo_fill(cr_n);
 
+                    cout << "destroy cr_n" << endl;
+                    cout << "ref count " << cairo_get_reference_count(cr_n) << endl;
+                    cairo_destroy (cr_n);
+                    cout << "destroy surface" << endl;
+                    cout << "ref count " << cairo_surface_get_reference_count(surface) << endl;
+                    cairo_surface_destroy (surface);
+
+                    cout << "adding noise" << endl;
                     addNoise(surface_n,1);
 
+                    cout << "add spots" << endl;
                     if(this->rndProbUnder(this->missingProbability_)){
                         addSpots(surface_n,2,true,0);
                     }
 
+                    cout << "after spots" << endl;
                     //cairo_surface_write_to_png (surface, "/home/chenziwe/aaaaa.png");
 
                     Mat textImg, maskImg;
+                    cout << "create mats" << endl;
                     textImg =cv::Mat(this->resHeight_,patchWidth,CV_8UC3,Scalar_<uchar>(0,0,0));
-                    maskImg =cv::Mat(this->resHeight_,patchWidth,CV_8UC1,Scalar_<uchar>(0,0,0));
+                    maskImg =cv::Mat(this->resHeight_,patchWidth,CV_8UC1,Scalar(0));
 
+                    cout << "converting to mat" << endl;
                     CairoToMat(surface_n,textImg,maskImg);
 
+                    cout << "destroy surface_n" << endl;
+                    cout << "ref count " << cairo_surface_get_reference_count(surface_n) << endl;
+                    cairo_surface_destroy (surface_n);
+
+                    cout << "after destroy stuff" << endl;
+                    
                     textImg.copyTo(output);
                     maskImg.copyTo(outputMask);
-                    cairo_destroy (cr);
-                    cairo_surface_destroy (surface);
+
                 }
 
                 void generateBgSample(CV_OUT Mat& sample, std::vector<BGFeature> &features, int width, int bg_color, int contrast){
@@ -812,10 +843,15 @@ namespace cv{
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
                         addSpots(surface,0,false,bg_color-50);
                     }
+                    tt.addBgPattern(cr, width, this->resHeight_, false, false, false, time(NULL));
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
                     CairoToMat(surface,res);
                     res.copyTo(sample);
+                    cout << "ref count " << cairo_get_reference_count(cr) << endl;
+                    cairo_destroy (cr);
+                    cout << "ref count " << cairo_surface_get_reference_count(surface) << endl;
+                    cairo_surface_destroy (surface);
                 }
 
                 RNG rng_;//Randon number generator used for all distributions
@@ -865,8 +901,8 @@ namespace cv{
                 }
 
                 void generateBgFeatures(vector<BGFeature> &bgFeatures){
-                    int maxnum;
-                    int index;
+                    int maxnum=0;
+                    int index=0;
                     switch (this->bgType4_) {
                         case (Flow):
                             maxnum=this->flow_n;

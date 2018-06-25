@@ -1,4 +1,5 @@
 #include <math.h>
+#include <algorithm>
 #include <stdlib.h>
 #include <pango/pangocairo.h>
 #include "opencv2/text/text_transformations.hpp"
@@ -565,7 +566,7 @@ TextTransformations::make_points_wave(double width, double height, int num_point
   int x_variance, y_variance;
   double x, y;    
 
-  //initialize rng with seed
+  //initialize rng.with seed
   srand (seed);
 
   //created num_points x,y coords
@@ -652,3 +653,65 @@ TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoL
   cairo_path_destroy (path);
 }
 
+
+void
+TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even, bool grid, bool curved, int seed) {
+
+  //initialize rng.with seed
+  srand (seed);
+
+  //randomly choose number of lines from 2 to 20
+  int num = rand()%19+2;
+
+  //length of lines
+  int length = std::max(width, height)*1.414;
+
+  //average spacing
+  int spacing = length / num;
+
+  //randomly choose rotation degree
+  int deg = rand()%360;
+  double rad = deg/180.0*3.14;
+
+  cairo_rotate(cr, rad);
+
+  //initialize the vector of lines
+  std::vector<std::vector<coords> > lines;
+
+  int top_y = -(length-height)/2;
+  int bottom_y = height+(length-height)/2;
+
+  //get a random initial spacing
+  int b = rand()%spacing;
+  if(even) b=spacing;
+  int cur_x = -(length-width)/2+b;
+  for (int i=0; i<num;i++) {
+      std::vector<coords> points;
+      points.push_back(std::make_pair(cur_x,top_y));
+      points.push_back(std::make_pair(cur_x,bottom_y));
+      lines.push_back(points);
+      cur_x+=(spacing-b)*2/num*(i+1)+b;
+  }
+
+  //draw the lines
+  for (int i=0;i<num;i++){
+      std::vector<coords> points=lines[i];
+      point_to_path(cr, points); //draw path shape
+      cairo_set_source_rgb(cr,0,0,0);
+      cairo_stroke(cr);
+  }
+
+  if (grid) {
+      deg+=90;
+      rad = deg/180.0*3.14;
+      cairo_rotate(cr, rad);
+      for (int i=0;i<num;i++){
+          std::vector<coords> points=lines[i];
+          point_to_path(cr, points); //draw path shape
+          cairo_set_source_rgb(cr,0,0,0);
+          cairo_stroke(cr);
+      }
+  }
+
+  cairo_rotate(cr, 0);
+}
