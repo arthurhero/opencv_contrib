@@ -5,7 +5,7 @@
 #include "opencv2/calib3d.hpp"
 
 #include "opencv2/text/text_synthesizer.hpp"
-#include "opencv2/text/text_transformations.hpp"
+#include "opencv2/text/path_curve.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -240,7 +240,7 @@ namespace cv{
             }
 
 
-            TextTransformations tt;
+            PathCurve pc;
 
 
         }//unnamed namespace
@@ -752,9 +752,9 @@ namespace cv{
                         pango_font_description_set_size(desc, size);
                         pango_layout_set_font_description (layout, desc);
                         if (this->rng_.next()%2==0) {
-                            tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
+                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
                         } else {
-                            tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
+                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
                         }
                         cairo_fill_preserve (cr);
                     } else {

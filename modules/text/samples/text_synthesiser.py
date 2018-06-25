@@ -15,8 +15,8 @@ helpStr="""Usage: """+sys.argv[0]+""" scenetext_segmented_word01.jpg scenetext_s
     """
 
 words=['PM','Charlie','Jerod','Anya','Titus']
-#fonts=['Chromaletter','cmmi10','eufm10','MathJax_Fraktur','Sans','Serif','URW Chancery L']
-blocky_fonts=['Chromaletter','MathJax_Fraktur','eufm10']
+#fonts=['cmmi10','eufm10','MathJax_Fraktur','Sans','Serif','URW Chancery L']
+blocky_fonts=['MathJax_Fraktur','eufm10']
 regular_fonts=['cmmi10','Sans','Serif']
 cursive_fonts=['URW Chancery L']
         

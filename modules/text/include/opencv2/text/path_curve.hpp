@@ -2,8 +2,8 @@
 #include <pango/pangocairo.h>
 #include <math.h>
 
-#ifndef TEXT_TRANSFORMATIONS_HPP
-#define TEXT_TRANSFORMATIONS_HPP
+#ifndef PATH_CURVE_HPP
+#define PATH_CURVE_HPP
 
 // rename pair of doubles for readability as coordinates (x,y)
 typedef std::pair<double, double> coords;
@@ -18,7 +18,7 @@ typedef struct {
 // path transforming function pointer
 typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
 
-class TextTransformations {
+class PathCurve {
 private:// -------------------- PRIVATE FUNCTIONS ---------------------------
  
   // rename pair of doubles for readability as coordinates (x,y)
@@ -269,13 +269,13 @@ int main() {
   pango_layout_set_markup (layout, "<span font='12'>TEXT</span>", -1);
 
   //instantiate class
-  TextTransformations tt;
+  PathCurve pc;
 
   //DRAW TEXT CURVE-------------------------------------------
 
-  tt.create_curved_path(cr,path,line,layout,x,y,num_points,seed);
+  pc.create_curved_path(cr,path,line,layout,x,y,num_points,seed);
   OR
-    tt.create_arc_path(cr,path,line,layout,x,y,radius,width,height,direction);
+    pc.create_arc_path(cr,path,line,layout,x,y,radius,width,height,direction);
 
   //----------------------------------------------------------
 

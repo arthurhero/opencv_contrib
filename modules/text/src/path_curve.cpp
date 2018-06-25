@@ -1,14 +1,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <pango/pangocairo.h>
-#include "opencv2/text/text_transformations.hpp"
+#include "opencv2/text/path_curve.hpp"
 
 // SEE text_transformations.hpp FOR ALL DOCUMENTATION
 
 //////////////////////////////////////////////////////// from behdad's cairotwisted.c (required functions)
 
 double
-TextTransformations::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
+PathCurve::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
 {
   double dx, dy;
 
@@ -20,7 +20,7 @@ TextTransformations::two_points_distance (cairo_path_data_t *a, cairo_path_data_
 
 
 double
-TextTransformations::curve_length (double x0, double y0,
+PathCurve::curve_length (double x0, double y0,
 				   double x1, double y1,
 				   double x2, double y2,
 				   double x3, double y3)
@@ -69,7 +69,7 @@ TextTransformations::curve_length (double x0, double y0,
 
 
 parametrization_t *
-TextTransformations::parametrize_path (cairo_path_t *path)
+PathCurve::parametrize_path (cairo_path_t *path)
 {
   int i;
   cairo_path_data_t *data, last_move_to, current_point;
@@ -116,7 +116,7 @@ TextTransformations::parametrize_path (cairo_path_t *path)
 
 
 void
-TextTransformations::transform_path (cairo_path_t *path, transform_point_func_t f, void *closure)
+PathCurve::transform_path (cairo_path_t *path, transform_point_func_t f, void *closure)
 {
   int i;
   cairo_path_data_t *data;
@@ -141,7 +141,7 @@ TextTransformations::transform_path (cairo_path_t *path, transform_point_func_t 
 
 
 void
-TextTransformations::point_on_path (parametrized_path_t *param,
+PathCurve::point_on_path (parametrized_path_t *param,
 				    double *x, double *y)
 {
   int i;
@@ -261,7 +261,7 @@ TextTransformations::point_on_path (parametrized_path_t *param,
 }
 
 void
-TextTransformations::map_path_onto (cairo_t *cr, cairo_path_t *path)
+PathCurve::map_path_onto (cairo_t *cr, cairo_path_t *path)
 {
   cairo_path_t *current_path;
   parametrized_path_t param;
@@ -285,7 +285,7 @@ TextTransformations::map_path_onto (cairo_t *cr, cairo_path_t *path)
 
 
 void 
-TextTransformations::four_point_to_cp(coords start,
+PathCurve::four_point_to_cp(coords start,
 				      coords f1,
 				      coords f2,
 				      coords end,
@@ -342,7 +342,7 @@ TextTransformations::four_point_to_cp(coords start,
 
 
 void 
-TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
+PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
 
   unsigned int count = points.size();
 
@@ -483,7 +483,7 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
 
 
 void 
-TextTransformations::points_to_arc_path(cairo_t *cr, std::vector<coords> points, 
+PathCurve::points_to_arc_path(cairo_t *cr, std::vector<coords> points, 
 					double radius, double width, double height, short direction) {
   
   coords origin;
@@ -515,7 +515,7 @@ TextTransformations::points_to_arc_path(cairo_t *cr, std::vector<coords> points,
 
 
 std::vector<coords>
-TextTransformations::make_points_arc(double width, double height, double radius, short direction) {
+PathCurve::make_points_arc(double width, double height, double radius, short direction) {
 
   if (radius < .5 * width) radius = .5 * width; // verify preconditions
   
@@ -556,7 +556,7 @@ TextTransformations::make_points_arc(double width, double height, double radius,
 
 
 std::vector<coords>
-TextTransformations::make_points_wave(double width, double height, int num_points, int seed) {
+PathCurve::make_points_wave(double width, double height, int num_points, int seed) {
 
   std::vector<coords> points;
 
@@ -589,7 +589,7 @@ TextTransformations::make_points_wave(double width, double height, int num_point
 
 
 void 
-TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 				      PangoLayout *layout, double x, double y, double radius, 
 				      double width, double height, short direction) {
   if (radius < .5*width) radius = .5*width; //verify preconditions
@@ -622,7 +622,7 @@ TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayo
 
 
 void
-TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 					 PangoLayout *layout, double width, double height,
 					 double x, double y, int num_points, int seed) {
 
