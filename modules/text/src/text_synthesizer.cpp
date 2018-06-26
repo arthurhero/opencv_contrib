@@ -385,6 +385,7 @@ namespace cv{
 
             //for three bg types
             curvingProbability_{0.9,0.1,0.2},
+            //curvingProbability_{1,1,1},
             italicProbability_{0.8,0.1,0.5},
 
             weightProbability_{
@@ -760,9 +761,9 @@ namespace cv{
                         pango_layout_set_font_description (layout, desc);
                         if (this->rng_.next()%2==0) {
                             cout << "before tt" << endl;
-                            tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
+                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
                         } else {
-                            tt.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
+                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,3,time(NULL));
                         }
                         cout << "after tt" << endl;
                         cairo_fill_preserve (cr);
@@ -779,6 +780,13 @@ namespace cv{
                     free(ink_rect);
 
                     cairo_identity_matrix(cr);
+
+                    //draw distracting text
+                    char font2[50];
+                    int shrink = this->rng_.next()%3+2;
+                    this->generateFont(font2,size/1024/shrink);
+                    tt.distractText(cr, patchWidth, this->resHeight_, font2, time(NULL));
+
                     cout << "destroy cr" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr) << endl;
                     cairo_destroy (cr);
@@ -841,6 +849,11 @@ namespace cv{
                     cairo_set_source_rgb(cr, bg_color/255.0,bg_color/255.0,bg_color/255.0);
                     cairo_paint (cr);
 
+                    if (find(features.begin(), features.end(), Colordiff)!= features.end()) {
+                        double color1 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
+                        double color2 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
+                        tt.colorDiff(cr, width, this->resHeight_, time(NULL), color1, color2);
+                    }
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
                         addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
                     }
@@ -909,8 +922,14 @@ namespace cv{
                         cout << "generating text patch" << endl;
                         generateTxtPatch(sample,sampleMask,caption,text_color);
                     } else {
-                        caption="Map";
-                        generateTxtPatch(sample,sampleMask,"Map",text_color);
+                        int len = rand()%10+1;
+                        char text[len+1];
+                        for (int i=0;i<len;i++) {
+                            text[i]=tt.randomChar(rand());
+                        }   
+                        text[len]='\0';
+                        caption=String(text);
+                        generateTxtPatch(sample,sampleMask,caption,text_color);
                     }
 
                 }

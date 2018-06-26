@@ -228,6 +228,28 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
   create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 		      PangoLayout *layout, double width, double height, 
 		      double x, double y, int num_points, int seed);
+
+  /* Add bg patters to the cr like even-spaced straight line, uneven-spaced
+   * straight line, grid, etc.
+   *
+   *
+   *
+   *
+   */
+  static void
+      addBgPattern (cairo_t *cr, int width, int height, 
+              bool even, bool grid, bool curved, int seed);
+
+  static void
+      colorDiff (cairo_t *cr, int width, int height, 
+              int seed, double color1, double color2); 
+
+  static char
+      randomChar(int seed);
+
+  static void
+      distractText (cairo_t *cr, int width, int height, char *font, 
+              int seed); 
 };
 
 #endif

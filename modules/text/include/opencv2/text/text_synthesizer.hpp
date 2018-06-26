@@ -65,7 +65,7 @@ namespace cv
 
         enum BGType {Water, Bigland, Smallland};
         enum BGType4 {Flow, Waterbody, Big, Small};
-        enum BGFeature {Colordiff, Distracttext, Boundry, Colorblob, Straight, Bggird, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
+        enum BGFeature {Colordiff, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
 
         class CV_EXPORTS_W TextSynthesizer{
 
@@ -90,6 +90,7 @@ namespace cv
 
                 //independent text properties
                 double missingProbability_;
+                double noiseProbability_;
                 double rotatedProbability_;
                 double rotatedAngle_;
 

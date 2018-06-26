@@ -1,9 +1,11 @@
 #include <math.h>
+#include <cmath>
 #include <algorithm>
 #include <stdlib.h>
 #include <pango/pangocairo.h>
 #include "opencv2/text/text_transformations.hpp"
 
+using namespace std;
 // SEE text_transformations.hpp FOR ALL DOCUMENTATION
 
 //////////////////////////////////////////////////////// from behdad's cairotwisted.c (required functions)
@@ -569,21 +571,27 @@ TextTransformations::make_points_wave(double width, double height, int num_point
   //initialize rng.with seed
   srand (seed);
 
+  //cout << "before for" << endl;
   //created num_points x,y coords
   for(int i = num_points - 1; i >= 0; i--) {
     //y variance of + 0 to 1/8 height
+    //cout << "yv" << endl;
     y_variance = (rand() % (int) ((1.0/8.0) * height));
 
     //x variance of +- 1/8 (width/num_points - 1)
-    x_variance = (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))))
-      - (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))));
+    //cout << "xv" << endl;
+    x_variance = (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))))
+      - (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))));
 
+    //cout << "x" << endl;
     x = x_variance + ((width / (num_points - 1)) * i);
+    //cout << "y" << endl;
     y = height - y_variance; //ensure points stay above the bottom of the canvas
 
     coords new_point(x,y);
     points.push_back(new_point);
   }
+  //cout << "after for" << endl;
 
   return points;
 }
@@ -630,23 +638,28 @@ TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoL
   if (num_points < 3) num_points = 3; //verify preconditions
 
   //set the points for the path
+  //cout << "make points" << endl;
   std::vector<coords> points = make_points_wave(width, height, num_points, seed);
 
+  //cout << "to path" << endl;
   point_to_path(cr, points); //draw path shape
 
   // Decrease tolerance, since the text going to be magnified 
   cairo_set_tolerance (cr, 0.01);
 
 
+  //cout << "to flat" << endl;
   path = cairo_copy_path_flat (cr);
 
   cairo_new_path (cr);
 
+  //cout << "get line" << endl;
   line = pango_layout_get_line_readonly (layout, 0);
 
   cairo_move_to (cr, x,y);//establish how far from/along path the text is
   pango_cairo_layout_line_path (cr, line);
 
+  //cout << "map onto" << endl;
   map_path_onto (cr, path);
 
   //clean up
@@ -744,3 +757,106 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
 
   cairo_rotate(cr, 0);
 }
+
+void
+TextTransformations::colorDiff (cairo_t *cr, int width, int height, int seed, double color1, double color2) {
+ 
+    //decide the number of color plates
+    srand (seed);
+    int num = rand()%2+1; //1~2
+
+    //get random points on top and bottom border
+    //std::vector<coords> tops;
+    //std::vector<coords> bottoms;
+    for (int i=0;i<num;i++) {
+        if(i==0)cairo_set_source_rgb(cr,color1,color1,color1);
+        else cairo_set_source_rgb(cr,color2,color2,color2);
+        bool left = (bool)rand()%2;
+        int x_top=rand()%width;
+        if (left) {
+            cairo_move_to (cr, 0, 0);
+        } else {
+            cairo_move_to (cr, width, 0);
+        }
+        cairo_line_to (cr, x_top, 0);
+        int x_bottom=rand()%width;
+        cairo_line_to (cr, x_bottom, height);
+        if (left) {
+            cairo_line_to (cr, 0, height);
+            cairo_line_to (cr, 0, 0);
+        } else {
+            cairo_line_to (cr, width, height);
+            cairo_line_to (cr, width, 0);
+        }
+        cairo_fill(cr);
+        //tops.push_back(std::make_pair(x_top,0));
+        //bottoms.push_back(std::make_pair(x_bottom,height));
+    }
+    
+    cairo_move_to (cr, 0, 0);
+
+}
+
+char
+TextTransformations::randomChar(int seed) {
+    srand (seed);
+    char ch;
+    int number = rand()%5; // 1/5 to be number
+    if (number==0){
+        ch=(char)(rand()%10+48);
+    } else {
+        ch=(char)((rand()%26+65)+(rand()%2)*32);
+    }
+    return ch;
+}
+
+void
+TextTransformations::distractText (cairo_t *cr, int width, int height, char *font, int seed) {
+
+    srand (seed);
+    //generate text
+    int len = rand()%10+1;
+    char text[len+1];
+    for (int i=0;i<len;i++) {
+        text[i]=randomChar(rand());
+    }
+    text[len]='\0';
+
+    PangoLayout *layout;
+    PangoFontDescription *desc;
+    layout = pango_cairo_create_layout (cr);
+
+    desc = pango_font_description_from_string(font);
+    pango_layout_set_font_description (layout, desc);
+    pango_layout_set_text(layout, text, -1);
+
+    PangoRectangle *ink_rect = new PangoRectangle;
+    PangoRectangle *logical_rect = new PangoRectangle;
+    pango_layout_get_extents(layout, ink_rect, logical_rect);
+
+    int ink_w=ink_rect->width/1024;
+    int ink_h=ink_rect->height/1024;
+
+    int x = rand()%width;
+    int y = rand()%height;
+
+    cairo_translate (cr, (double)x, (double)y);
+
+    //randomly choose rotation degree
+    int deg = rand()%360;
+    double rad = deg/180.0*3.14;
+
+    cairo_translate (cr, ink_w/2.0, ink_h/2.0);
+    cairo_rotate(cr, rad);
+    cairo_translate (cr, -ink_w/2.0, -ink_h/2.0);
+
+    pango_cairo_show_layout (cr, layout);
+
+    cairo_translate (cr, -x, -y);
+    cairo_rotate(cr, 0);
+    g_object_unref(layout);
+    pango_font_description_free (desc);
+    free(logical_rect);
+    free(ink_rect);
+}
+
