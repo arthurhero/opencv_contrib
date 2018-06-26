@@ -3,12 +3,14 @@
 #include <pango/pangocairo.h>
 
 /*
- * A class that holds methods to handle all synthetic flow line generation
+ * A class that holds methods to handle all synthetic flow line generation.
+ * Inherits from PathCurve class for access to curving functions and protected
+ * make_points_wave function
  */
 class
-FlowLines {
+FlowLines : PathCurve {
 private:
-  PathCurve pc;
+  
 
 public:
   /*
@@ -20,12 +22,18 @@ public:
    * dashed - if true, make line dashed
    * curved - if true, add curvature with create_curved_path from pc
    * doubleline - if true, add another line parallel to the original
+   * horizontal - if true, lines and transformations go left to right, else top to bottom
    * num_lines - the number of lines to draw (the number of times this function loops)
    */
   static void
-  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, int num_lines) {
-
+  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int num_lines) {
+    for(int i = 0; i < num_lines; i++) {
+      
+    }
   }
+
+  void func() { this->make_points_arc(100,50,100,1); }
+
 };
 
 
@@ -55,7 +63,7 @@ int main() {
   FlowLines fl;
 
   /*use that good stuff here*/
-  fl.railroad(cr);
+  fl.func();
 
 
   //clean up

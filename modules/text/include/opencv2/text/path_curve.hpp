@@ -19,7 +19,7 @@ typedef struct {
 typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
 
 class PathCurve {
-private:// -------------------- PRIVATE FUNCTIONS ---------------------------
+private:// -------------------- PRIVATE METHODS ---------------------------
  
   // rename pair of doubles for readability as coordinates (x,y)
   typedef std::pair<double, double> coords;
@@ -144,6 +144,7 @@ private:// -------------------- PRIVATE FUNCTIONS ---------------------------
   points_to_arc_path(cairo_t *cr, std::vector<coords> points, double radius, 
 		     double width, double height, short direction);
 
+protected: //----------------- PROTECTED METHODS ----------------------------
   /*
    * Makes a vector of 2 x,y coordinates that follow the arc of the input radius.
    * For noticable results with minimal distortion, radius should be greater than
@@ -175,7 +176,7 @@ private:// -------------------- PRIVATE FUNCTIONS ---------------------------
   make_points_wave(double width, double height, int num_points, int seed);
 
 
-public:// ------------------ PUBLIC FUNCTIONS ------------------------------
+public:// -------------------- PUBLIC METHODS --------------------------------
   /*
    * Creates an arc path that allows for text to be drawn along
    * it. For minimal distortion and visible results, radius should 
@@ -203,6 +204,20 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
 		   PangoLayout *layout, double x, double y, double radius, 
 		   double width, double height, short direction);
 
+
+  /*
+   * An overload for create_arc_path that allows for the points vector
+   * to be set outside the function.
+   *
+   * points - vector of x,y coordinate pairs that are used to make the
+   *          shape of the path
+   */
+  static void 
+  create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+		   PangoLayout *layout, double x, double y, double radius, 
+		   double width, double height, short direction, 
+		   std::vector<coords> points);
+
   /*
    * Creates a curved path from points using cubic interpolation, and allows 
    * for text to be drawn along it
@@ -228,14 +243,26 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
   create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 		      PangoLayout *layout, double width, double height, 
 		      double x, double y, int num_points, int seed);
+
+  /*
+   * An overload for create_curved_path that allows for the points vector
+   * to be set outside the function.   
+   * points - vector of x,y coordinate pairs that are used to make the
+   *          shape of the path
+   */
+  static void
+  create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+		      PangoLayout *layout, double width, double height, 
+		      double x, double y, int num_points, int seed
+		      std::vector<coords> points);
 };
 
 #endif
 
-/******* skeleton main for using TextTransform class ***********
+/******* skeleton main for using PathCurve class ***********
 #include <pango/pangocairo.h>
 #include <math.h>
-#include "text_transformations.hpp"
+#include "path_curve.hpp"
 
 int main() {
 

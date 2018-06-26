@@ -11,7 +11,7 @@ endmacro(use_cxx11)
 use_cxx11()
 
 SET(TARGET_SRC
-    text_transformations.cpp
+    path_curve.cpp
     )
 
 set(the_description "Text Detection and Recognition")

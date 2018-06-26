@@ -3,7 +3,7 @@
 #include <pango/pangocairo.h>
 #include "../include/opencv2/text/path_curve.hpp"
 
-// SEE text_transformations.hpp FOR ALL DOCUMENTATION
+// SEE path_curve.hpp FOR ALL DOCUMENTATION
 
 //////////////////////////////////////////////////////// from behdad's cairotwisted.c (required functions)
 
@@ -21,9 +21,9 @@ PathCurve::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
 
 double
 PathCurve::curve_length (double x0, double y0,
-				   double x1, double y1,
-				   double x2, double y2,
-				   double x3, double y3)
+			 double x1, double y1,
+			 double x2, double y2,
+			 double x3, double y3)
 {
   cairo_surface_t *surface;
   cairo_t *cr;
@@ -142,7 +142,7 @@ PathCurve::transform_path (cairo_path_t *path, transform_point_func_t f, void *c
 
 void
 PathCurve::point_on_path (parametrized_path_t *param,
-				    double *x, double *y)
+			  double *x, double *y)
 {
   int i;
   double ratio, the_y = *y, the_x = *x, dx, dy;
@@ -286,11 +286,11 @@ PathCurve::map_path_onto (cairo_t *cr, cairo_path_t *path)
 
 void 
 PathCurve::four_point_to_cp(coords start,
-				      coords f1,
-				      coords f2,
-				      coords end,
-				      coords *cp1,
-				      coords *cp2) {
+			    coords f1,
+			    coords f2,
+			    coords end,
+			    coords *cp1,
+			    coords *cp2) {
  
   double AB_DENOM = 27.0;   
   double AB_NUMER1 = 1.0;  
@@ -484,7 +484,7 @@ PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
 
 void 
 PathCurve::points_to_arc_path(cairo_t *cr, std::vector<coords> points, 
-					double radius, double width, double height, short direction) {
+			      double radius, double width, double height, short direction) {
   
   coords origin;
   coords start = points.back(); 
@@ -590,8 +590,8 @@ PathCurve::make_points_wave(double width, double height, int num_points, int see
 
 void 
 PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-				      PangoLayout *layout, double x, double y, double radius, 
-				      double width, double height, short direction) {
+			    PangoLayout *layout, double x, double y, double radius, 
+			    double width, double height, short direction) {
   if (radius < .5*width) radius = .5*width; //verify preconditions
 
   //set the points for the path
@@ -621,10 +621,44 @@ PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *li
 }
 
 
+void 
+PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+			    PangoLayout *layout, double x, double y, double radius, 
+			    double width, double height, short direction
+			    std::vector<coords> points) {
+  if (radius < .5*width) radius = .5*width; //verify preconditions
+
+  //set the points for the path
+  std::vector<coords> points = points;
+
+  //draw path shape
+  points_to_arc_path(cr, points, radius, width, height, direction); 
+  
+  // Decrease tolerance, since the text going to be magnified 
+  cairo_set_tolerance (cr, .01);
+
+  path = cairo_copy_path_flat (cr);
+
+
+  cairo_new_path (cr);
+
+  line = pango_layout_get_line_readonly (layout, 0);
+
+  cairo_move_to (cr, x,y); //establish how far from/along path the text is
+  pango_cairo_layout_line_path (cr, line);
+
+  map_path_onto (cr, path);
+
+  //clean up
+  cairo_path_destroy (path);
+
+}
+
+
 void
 PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-					 PangoLayout *layout, double width, double height,
-					 double x, double y, int num_points, int seed) {
+			       PangoLayout *layout, double width, double height,
+			       double x, double y, int num_points, int seed) {
 
   if (num_points < 3) num_points = 3; //verify preconditions
 
@@ -652,3 +686,35 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine 
   cairo_path_destroy (path);
 }
 
+
+void
+PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+			       PangoLayout *layout, double width, double height,
+			       double x, double y, int num_points, int seed,
+			       std::vector<coords> points) {
+
+  if (num_points < 3) num_points = 3; //verify preconditions
+
+  //set the points for the path
+  std::vector<coords> points = points;
+
+  point_to_path(cr, points); //draw path shape
+
+  // Decrease tolerance, since the text going to be magnified 
+  cairo_set_tolerance (cr, 0.01);
+
+
+  path = cairo_copy_path_flat (cr);
+
+  cairo_new_path (cr);
+
+  line = pango_layout_get_line_readonly (layout, 0);
+
+  cairo_move_to (cr, x,y);//establish how far from/along path the text is
+  pango_cairo_layout_line_path (cr, line);
+
+  map_path_onto (cr, path);
+
+  //clean up
+  cairo_path_destroy (path);
+}
