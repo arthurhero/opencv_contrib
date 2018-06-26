@@ -24,7 +24,7 @@ private:// -------------------- PRIVATE METHODS ---------------------------
   // rename pair of doubles for readability as coordinates (x,y)
   typedef std::pair<double, double> coords;
 
-  ////////////// from behdad's cairotwisted.c (required functions) /////////////
+  ////////////// from Behdad's cairotwisted.c (required functions) /////////////
 
   typedef double parametrization_t;  
 
@@ -164,12 +164,12 @@ protected: //----------------- PROTECTED METHODS ----------------------------
    * Makes and returns a vector of x,y coordinate points for
    * a wave path to be drawn along. Coordinate point variation
    * is determined with rng within certain bounds to prevent
-   * distorted or off surface results.
+   * distorted results.
    *
    * width - surface width in pixels
    * height - surface height in pixels
    * num_points - the number of points to push onto the vector 
-   *              (minimum 3) (range 3-5 for best results)
+   *              (minimum 3) (range 3-5 for least text distortion)
    * seed - the random number generator seed
    */
   static std::vector<coords>
@@ -247,14 +247,14 @@ public:// -------------------- PUBLIC METHODS --------------------------------
   /*
    * An overload for create_curved_path that allows for the points vector
    * to be set outside the function.   
+   *
    * points - vector of x,y coordinate pairs that are used to make the
    *          shape of the path
    */
   static void
   create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 		      PangoLayout *layout, double width, double height, 
-		      double x, double y, int num_points, int seed
-		      std::vector<coords> points);
+		      double x, double y, std::vector<coords> points);
 };
 
 #endif

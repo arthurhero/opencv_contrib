@@ -575,7 +575,7 @@ PathCurve::make_points_wave(double width, double height, int num_points, int see
 
     //x variance of +- 1/8 (width/num_points - 1)
     x_variance = (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))))
-      - (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))));
+                 - (rand() % (int) ((1.0/8.0) * (width / (num_points - 1))));
 
     x = x_variance + ((width / (num_points - 1)) * i);
     y = height - y_variance; //ensure points stay above the bottom of the canvas
@@ -690,10 +690,8 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine 
 void
 PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 			       PangoLayout *layout, double width, double height,
-			       double x, double y, int num_points, int seed,
-			       std::vector<coords> points) {
+			       double x, double y, std::vector<coords> points) {
 
-  if (num_points < 3) num_points = 3; //verify preconditions
 
   //set the points for the path
   std::vector<coords> points = points;
