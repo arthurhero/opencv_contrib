@@ -258,7 +258,7 @@ namespace cv
                  * @param sampleMask a result parameter which contains the alpha value which is usefull
                  * for overlaying the text sample on other images.
                  */
-                CV_WRAP virtual void generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, CV_OUT Mat& sampleMask, int text_color) = 0;
+                CV_WRAP virtual void generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, CV_OUT Mat& sampleMask, int text_color, bool distract) = 0;
 
 
                 /** @brief generates a random text sample given a string

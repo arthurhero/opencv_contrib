@@ -401,7 +401,8 @@ namespace cv{
 
             //bg features
             colordiffProb_{0.5,0.5,0,0.2},
-            distracttextProb_{0,0,0.2,0},
+            distracttextProb_{0,0,0.5,0},
+            //distracttextProb_{1,1,1,1},
             boundryProb_{0.2,0,0.3,0},
             //colorblobProb_{0.1,0,0,0.1},
             colorblobProb_{1,1,1,1},
@@ -548,7 +549,7 @@ namespace cv{
                     strcat(ret,stm.str().c_str());
                 }
 
-                void generateTxtPatch(Mat& output,Mat& outputMask,String caption, int text_color){
+                void generateTxtPatch(Mat& output,Mat& outputMask,String caption, int text_color, bool distract){
                     size_t len = caption.length();
                     if (this->rndProbUnder(this->rotatedProbability_)){
                         int degree = this->rng_.next()%21-10;
@@ -782,10 +783,12 @@ namespace cv{
                     cairo_identity_matrix(cr);
 
                     //draw distracting text
-                    char font2[50];
-                    int shrink = this->rng_.next()%3+2;
-                    this->generateFont(font2,size/1024/shrink);
-                    tt.distractText(cr, patchWidth, this->resHeight_, font2, time(NULL));
+                    if (distract) {
+                        char font2[50];
+                        int shrink = this->rng_.next()%3+2;
+                        this->generateFont(font2,size/1024/shrink);
+                        tt.distractText(cr, patchWidth, this->resHeight_, font2, time(NULL));
+                    }
 
                     cout << "destroy cr" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr) << endl;
@@ -916,11 +919,11 @@ namespace cv{
                     this->rng_.state=state.ptr<uint64>(0)[0];
                 }
 
-                void generateTxtSample(CV_OUT String &caption, CV_OUT Mat& sample,CV_OUT Mat& sampleMask, int text_color){
+                void generateTxtSample(CV_OUT String &caption, CV_OUT Mat& sample,CV_OUT Mat& sampleMask, int text_color, bool distract){
                     if(sampleCaptions_.size()!=0){
                         caption = sampleCaptions_[this->rng_.next()%sampleCaptions_.size()];
                         cout << "generating text patch" << endl;
-                        generateTxtPatch(sample,sampleMask,caption,text_color);
+                        generateTxtPatch(sample,sampleMask,caption,text_color,distract);
                     } else {
                         int len = rand()%10+1;
                         char text[len+1];
@@ -929,7 +932,7 @@ namespace cv{
                         }   
                         text[len]='\0';
                         caption=String(text);
-                        generateTxtPatch(sample,sampleMask,caption,text_color);
+                        generateTxtPatch(sample,sampleMask,caption,text_color,distract);
                     }
 
                 }
@@ -1073,7 +1076,11 @@ namespace cv{
 
                     std::vector<Mat> txtChannels;
                     //cout << "generating text sample" << endl;
-                    generateTxtSample(caption, txtSample,txtMask,text_color);
+                    if (find(bgFeatures.begin(), bgFeatures.end(), Distracttext)!= bgFeatures.end()) {
+                        generateTxtSample(caption, txtSample,txtMask,text_color, true);
+                    } else {
+                        generateTxtSample(caption, txtSample,txtMask,text_color, false);
+                    }
                     //cout << "finished generating text sample" << endl;
 
                     //cout << "generating bg sample" << endl;
