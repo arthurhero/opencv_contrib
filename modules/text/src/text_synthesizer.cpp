@@ -373,7 +373,7 @@ namespace cv{
         //probabilities are all accumulative
         TextSynthesizer::TextSynthesizer(int sampleHeight):
             resHeight_(sampleHeight),
-            bgProbability_{0.33,0.66},
+            bgProbability_{0.25,0.8},
             stretchProbability_{
                 {0.05,0.1,0.4,0.7},
                 {0.05,0.1,0.4,0.7},
@@ -752,7 +752,7 @@ namespace cv{
                         ink_x=ink_x*height_ratio+1;
                         cairo_translate (cr, -ink_x, -ink_y);
                         pango_cairo_show_layout (cr, layout);
-                    } else if (curved) {
+                    } else if (curved && len>1) {
                         cairo_path_t *path;
                         PangoLayoutLine *line;
                         cur_size = pango_font_description_get_size(desc);
@@ -760,12 +760,15 @@ namespace cv{
                         cout << "curved size " << size << endl;
                         pango_font_description_set_size(desc, size);
                         pango_layout_set_font_description (layout, desc);
+                        cout << "before tt" << endl;
+                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
+                        /*
                         if (this->rng_.next()%2==0) {
-                            cout << "before tt" << endl;
                             tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
                         } else {
                             tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,3,time(NULL));
                         }
+                        */
                         cout << "after tt" << endl;
                         cairo_fill_preserve (cr);
                     } else {
