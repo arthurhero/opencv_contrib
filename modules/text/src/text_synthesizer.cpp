@@ -189,7 +189,7 @@ namespace cv{
                 for (int i=0;i<pnum;i++) {
                     xs[i]=rng_.next()%stride;
                     ys[i]=rng_.next()%height;
-                    rads[i]=rng_.next()%(height/(12-degree));
+                    rads[i]=rng_.next()%(height/(4+2*degree));
                 }
 
                 for (int r=0;r<height;r++) {
@@ -418,7 +418,9 @@ namespace cv{
 
             //independent properties
             missingProbability_=0.2;
-            rotatedProbability_=0;
+            noiseProbability_=0.3;
+            rotatedProbability_=0.3;
+
 
             finalBlendAlpha_=0.9;
             finalBlendProb_=0;
@@ -629,7 +631,7 @@ namespace cv{
                     this->generateFont(font,(int)fontsize);
                     cout << font << endl;
                     //cout << caption << endl;
-                    cairo_set_source_rgb(cr, text_color,text_color,text_color);
+                    cairo_set_source_rgb(cr, text_color/255.0,text_color/255.0,text_color/255.0);
 
                     PangoLayout *layout;
                     PangoFontDescription *desc;
@@ -659,9 +661,6 @@ namespace cv{
                     }
 
                     pango_layout_set_font_description (layout, desc);
-
-                    //set text color
-                    cairo_set_source_rgb (cr, 0,0,0);
 
                     int spacing_ = (int)(1024*spacing);
 
@@ -802,7 +801,9 @@ namespace cv{
                     cairo_surface_destroy (surface);
 
                     cout << "adding noise" << endl;
-                    addNoise(surface_n,1);
+                    if(this->rndProbUnder(this->noiseProbability_)){
+                        addNoise(surface_n,1);
+                    }
 
                     cout << "add spots" << endl;
                     if(this->rndProbUnder(this->missingProbability_)){
@@ -841,9 +842,23 @@ namespace cv{
                     cairo_paint (cr);
 
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
-                        addSpots(surface,0,false,bg_color-50);
+                        addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
                     }
-                    tt.addBgPattern(cr, width, this->resHeight_, false, false, false, time(NULL));
+                    if (find(features.begin(), features.end(), Parallel)!= features.end()) {
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        cairo_set_source_rgb(cr,color,color,color);
+                        tt.addBgPattern(cr, width, this->resHeight_, true, false, true, time(NULL));
+                    }
+                    if (find(features.begin(), features.end(), Vparallel)!= features.end()) {
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        cairo_set_source_rgb(cr,color,color,color);
+                        tt.addBgPattern(cr, width, this->resHeight_, false, false, true, time(NULL));
+                    }
+                    if (find(features.begin(), features.end(), Grid)!= features.end()) {
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        cairo_set_source_rgb(cr,color,color,color);
+                        tt.addBgPattern(cr, width, this->resHeight_, true, true, false, time(NULL));
+                    }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
                     CairoToMat(surface,res);
@@ -923,7 +938,7 @@ namespace cv{
                         default:
                             break;
                     }
-                    std::vector<BGFeature> allFeatures={Colordiff, Distracttext, Boundry, Colorblob, Straight, Bggird, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
+                    std::vector<BGFeature> allFeatures={Colordiff, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
                     for (int i=0;i<maxnum;i++){
                         bool flag = true;
                         while (flag) {
@@ -962,7 +977,7 @@ namespace cv{
                                         bgFeatures.push_back(cur);
                                     }
                                     break;
-                                case (Bggird):
+                                case (Grid):
                                     if(this->rndProbUnder(this->gridProb_[index])){
                                         bgFeatures.push_back(cur);
                                     }
@@ -1025,8 +1040,8 @@ namespace cv{
                     generateBgFeatures(bgFeatures);
 
                     int bg_brightness = 255-this->rng_.next()%100;
-                    int contrast = this->rng_.next()%(bg_brightness-100);
-                    int text_color = bg_brightness-contrast;
+                    int text_color = this->rng_.next()%50;
+                    int contrast = bg_brightness - text_color;
 
                     Mat txtSample;
                     Mat bgSample;

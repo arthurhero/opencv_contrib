@@ -660,8 +660,8 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   //initialize rng.with seed
   srand (seed);
 
-  //randomly choose number of lines from 2 to 20
-  int num = rand()%19+2;
+  //randomly choose number of lines from 2 to 10
+  int num = rand()%9+2;
 
   //length of lines
   int length = std::max(width, height)*1.414;
@@ -673,13 +673,36 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   int deg = rand()%360;
   double rad = deg/180.0*3.14;
 
+  cairo_translate(cr, width/2.0, height/2.0);
   cairo_rotate(cr, rad);
+  cairo_translate(cr, -width/2.0, -height/2.0);
 
   //initialize the vector of lines
   std::vector<std::vector<coords> > lines;
 
   int top_y = -(length-height)/2;
   int bottom_y = height+(length-height)/2;
+
+  //get curving params
+  int rand_num = rand()%3+1;
+  std::vector<int> xs;
+  std::vector<int> ys;
+  for (int k=0;k<rand_num;k++) {
+      int x_off = rand()%(width/2)-(width/4);
+      xs.push_back(x_off);
+      int y_off = rand()%length;
+      if (k==0) {
+          ys.push_back(y_off);
+      } else if (y_off<ys[0]){
+          ys.insert(ys.begin(),y_off);
+      } else if (k==1 && y_off>ys[0]){
+          ys.push_back(y_off);
+      } else if (k==2 && y_off>ys[1]){
+          ys.push_back(y_off);
+      } else if (k==2 && y_off<ys[1]){
+          ys.insert(ys.begin()+1,y_off);
+      }
+  }
 
   //get a random initial spacing
   int b = rand()%spacing;
@@ -688,6 +711,11 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   for (int i=0; i<num;i++) {
       std::vector<coords> points;
       points.push_back(std::make_pair(cur_x,top_y));
+      if (curved) {
+          for (int k=0;k<rand_num;k++) {
+              points.push_back(std::make_pair(cur_x+xs[k],top_y+ys[k]));
+          }
+      }
       points.push_back(std::make_pair(cur_x,bottom_y));
       lines.push_back(points);
       cur_x+=(spacing-b)*2/num*(i+1)+b;
@@ -697,18 +725,19 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   for (int i=0;i<num;i++){
       std::vector<coords> points=lines[i];
       point_to_path(cr, points); //draw path shape
-      cairo_set_source_rgb(cr,0,0,0);
       cairo_stroke(cr);
   }
 
   if (grid) {
-      deg+=90;
-      rad = deg/180.0*3.14;
-      cairo_rotate(cr, rad);
+      //deg+=90;
+      //rad = deg/180.0*3.14;
+      cairo_translate(cr, width/2.0, height/2.0);
+      //cairo_rotate(cr, rad);
+      cairo_rotate(cr, 3.14/2);
+      cairo_translate(cr, -width/2.0, -height/2.0);
       for (int i=0;i<num;i++){
           std::vector<coords> points=lines[i];
           point_to_path(cr, points); //draw path shape
-          cairo_set_source_rgb(cr,0,0,0);
           cairo_stroke(cr);
       }
   }
