@@ -113,11 +113,9 @@ private:// -------------------- PRIVATE METHODS ---------------------------
    * cr - cairo context
    * points - a vector of x,y coordinate pairs 
    *          (precondition: must contain at least 2 elements)
-   * stroke - a flag to tell function whether or not to stroke the line or
-   *          simply leave it as a path. (optional parameter, default = false)
    */
   static void 
-  point_to_path(cairo_t *cr, std::vector<coords> points, bool stroke=false);
+  point_to_path(cairo_t *cr, std::vector<coords> points);
 
   /*
    * Make an arc that follows the path of points vector

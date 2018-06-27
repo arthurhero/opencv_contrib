@@ -342,7 +342,7 @@ PathCurve::four_point_to_cp(coords start,
 
 
 void 
-PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points, bool stroke) {
+PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
 
   unsigned int count = points.size();
 
@@ -471,7 +471,6 @@ PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points, bool stroke) {
     count -= 1;
   }
 
-  if(stroke) { cairo_stroke_preserve(cr); }
   return;
 }
 
@@ -685,8 +684,10 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path,
 			       double width, double height, double x, double y, 
 			       std::vector<coords> points, bool stroke) {
 
-  point_to_path(cr, points, stroke); //draw path shape
+  point_to_path(cr, points); //draw path shape
 
+  //if stroking path, don't execute path destroying functions
+  if(!stroke) {
   // Decrease tolerance, since the text going to be magnified 
   cairo_set_tolerance (cr, 0.01);
 
@@ -704,5 +705,5 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path,
 
   //clean up
   cairo_path_destroy (path);
-  
+  }
 }

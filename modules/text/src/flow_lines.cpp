@@ -18,11 +18,36 @@
 class
 FlowLines : PathCurve {
 private: //----------------------- PRIVATE METHODS --------------------------
-  
+  /*
+   * Takes and arbitrarily sets an array pattern for cairo_set_dash, returns array size
+   */
+  int
+  set_dash_pattern(double * pattern);
+
+  /*
+translates linewidth and then strokes a line of arbitrary new color and then translates back
+   */
+void
+draw_boundry(double linewidth);
+
+  /*
+draws the main line (thin) and then another line (thick) with a specific dash pattern
+over it such that it looks as if the 2nd line is actually small perpendicular lines
+   */
+void
+draw_hatched(cairo_t *cr, double linewidth);
+
+  /*
+translates a just enough either up or down (based on the input line orientation)
+to give space for a second line to be drawn in parallel
+   */
+void
+translate_parallel(bool horizontal, double linewidth);
 
 public: //----------------------- PUBLIC METHODS --------------------------
-  /*
-   * Draws lines with arbitrary characteristics
+  /* IMPERFECT, CURVED VERTICAL LINES TEND TO APPEAR ON RIGHT
+   * Draws num_lines lines with arbitrary placement that have the characteristics
+   * specified by the parameters
    *
    * cr - cairo context
    * boundry - if true, add a colored line that runs next to the original
@@ -46,13 +71,46 @@ public: //----------------------- PUBLIC METHODS --------------------------
 ///////////////////////////// source ///////////////////////////////
 
 // SEE flow_lines.hpp FOR ALL DOCUMENTATION
+int
+FlowLines::set_dash_pattern(double * pattern) {
+  double dash;  
+
+  //set how long the pattern array will be
+  int len = 1 + rand() % 5;
+
+  //set the pattern
+  for(int i = 0; i < len; i++) {
+    dash = (rand() % 10000) / 1000.0;
+    pattern[i] = dash;
+  }
+
+  return len;
+}
+
+
+void
+FlowLines::draw_boundry(double linewidth) {
+
+}
+
+
+void
+FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
+
+}
+
+void
+FlowLines::translate_parallel(bool horizontal, double linewidth) {
+
+}
+
 
 void
 FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int num_lines, int seed, int width, int height){
   //init variables
   std::vector<coords> points;
-  double x,y,angle,color, magic_line_ratio;
-  int num_points, pattern_len, translation, parallels;
+  double x,y,angle,color, magic_line_ratio, line_width;
+  int num_points, pattern_len, translation_x, translation_y, parallels;
   double * dash_pattern;
  
   PangoLayout *layout;
@@ -67,36 +125,44 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
   color = (rand() % 20) / 100.0; //keep color fairly dark
   cairo_set_source_rgb(cr, color, color, color); // gray-scale
   magic_line_ratio = 1.0/(80.0 + (rand() % 40));
-  cairo_set_line_width(cr, std::min(width, height) * magic_line_ratio);
+  line_width = std::min(width, height) * magic_line_ratio;
+  cairo_set_line_width(cr, line_width);
 
 
   // draws one line per iteration of the loop
   for(int i = 0; i < num_lines; i++) { //move loop outside for randomness of params per run???? ================
     //move to origin of surface
     cairo_move_to(cr, 0, 0);
+    
 
-    // randomly set starting positions and rotation based on orientation 
+    // randomly set translation and rotation based on orientation 
     if(horizontal) { //horizontal line orientation
-      //make a starting point and angle
-      translation = (rand() % width) - (rand() % width); // +- width
-      //starting point xy
-      x = 0;
-      y = height - (rand() % height); // range 0 - height
-      angle = 0;//((rand() % 7854) - (rand() % 7854))/10000.0; //get angle +- PI/4
-      
-      cairo_translate(cr, translation, 0); // translate some x 
-      cairo_rotate(cr, angle); // set plausible rotation angle for horizontal line
+      //make a starting translation and angle
+      angle = ((rand() % 7854) - (rand() % 7854))/10000.0; //get angle +- PI/4
+      translation_x = (rand() % width) - (rand() % width); // +- width
+      if(curved) { translation_y = -fabs(y); } // translate points up from bottom
+      else { translation_y = 0; }
+
+      cairo_translate(cr, translation_x, translation_y);
+      cairo_rotate(cr, angle); 
 
     } else { //vertical line orientation
-      //make a starting point and angle
-      translation = (rand() % height) - (rand() % height); // +- height
-      //starting point xy
-      x = width - (rand() % width);   // range 0 - width
-      y = 0;
-      angle = 0;//(3 * (rand() % 7854) - (rand() % 7854))/10000.0; //get angle from PI/4 to 3PI/4;
-
-      cairo_translate(cr, 0, translation); // translate some y
-      cairo_rotate(cr, angle); // set plausible rotation angle for vertical line
+      //make a starting translation and angle
+      angle = -((3 * 7854) - 2 * (rand() % 7854))/10000.0; //get angle from PI/4 to 3PI/4
+      
+      translation_y = -height/2.0 + (rand() % (int)(height/2.0)) - (rand() % (int)(height/2.0));// =================================================
+      translation_x = (rand() % (int) (width/2.0)); //- (rand() % height); // +- height
+      printf("rot = %f tran_x = %d tran_y = %d\n", angle, translation_x, translation_y); //===============================================
+      
+      //translate to curved line start point, rotate around it, translate back
+      if(curved) {
+	cairo_translate(cr, width/2.0, height);
+	cairo_rotate(cr, angle); 
+	cairo_translate(cr, translation_x, translation_y);
+      } else { //if line is straight, just translate and rotate
+	cairo_translate(cr, translation_x, translation_y);
+	cairo_rotate(cr, angle); 
+      }
     }
 
     // set path shape 
@@ -105,10 +171,10 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
 
       //get correct point vector based on line orientation
       if(horizontal) {
-	points = PathCurve::make_points_wave(width, height, num_points, seed);
+	points = PathCurve::make_points_wave(width, height, num_points, rand());
       } else {
-	points = PathCurve::make_points_wave(height, width, num_points, seed);
-      }
+	points = PathCurve::make_points_wave(height, height, num_points, rand());
+      } 
       //curve the path and give extra optional parameter to stroke the path
       PathCurve::create_curved_path(cr,path,line,layout,width,height,0,0,points,true); // ==========================call boundry here???
 
@@ -121,10 +187,9 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
       }
     } 
 
-    /*
     // set line style
     if(dashed) {
-      pattern_len = set_dash_pattern(dash_pattern); // TODO ===================================
+      pattern_len = set_dash_pattern(dash_pattern); 
       cairo_set_dash(cr, dash_pattern, pattern_len, 0);
     } // else do nothing, line is already solid
 
@@ -147,7 +212,7 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
       } // else do nothing
 
       // translate a little so that next line drawn in parallel
-      translate_parallel(); //TODO =========================================
+      translate_parallel(horizontal); //TODO =========================================
     }
     */
     // stroke to surface ======================================== done already in parallel loop???
@@ -178,9 +243,9 @@ int main() {
   bool dashed = false;
   bool curved = true;
   bool doubleline = false;
-  bool horizontal = true;
-  int num_lines = 1; 
-  int seed = 34552;
+  bool horizontal = false;
+  int num_lines = 10; 
+  int seed = 10698;
   
   //initialize canvas vars
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 
