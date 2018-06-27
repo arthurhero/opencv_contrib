@@ -7,6 +7,7 @@
 
 // rename pair of doubles for readability as coordinates (x,y)
 typedef std::pair<double, double> coords;
+
 typedef double parametrization_t;  
 
 /* Simple struct to hold a path and its parametrization */
@@ -21,22 +22,10 @@ typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
 class PathCurve {
 private:// -------------------- PRIVATE METHODS ---------------------------
  
-  // rename pair of doubles for readability as coordinates (x,y)
-  typedef std::pair<double, double> coords;
 
   ////////////// from Behdad's cairotwisted.c (required functions) /////////////
 
-  typedef double parametrization_t;  
-
-  /* Simple struct to hold a path and its parametrization */
-  typedef struct {
-    cairo_path_t *path;
-    parametrization_t *parametrization;
-  } parametrized_path_t;
-
-  // path transforming function pointer
-  typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
-
+ 
   /* Returns Euclidean distance between two points */
   static double
   two_points_distance (cairo_path_data_t *a, 
@@ -124,9 +113,11 @@ private:// -------------------- PRIVATE METHODS ---------------------------
    * cr - cairo context
    * points - a vector of x,y coordinate pairs 
    *          (precondition: must contain at least 2 elements)
+   * stroke - a flag to tell function whether or not to stroke the line or
+   *          simply leave it as a path. (optional parameter, default = false)
    */
   static void 
-  point_to_path(cairo_t *cr, std::vector<coords> points);
+  point_to_path(cairo_t *cr, std::vector<coords> points, bool stroke=false);
 
   /*
    * Make an arc that follows the path of points vector
@@ -250,11 +241,14 @@ public:// -------------------- PUBLIC METHODS --------------------------------
    *
    * points - vector of x,y coordinate pairs that are used to make the
    *          shape of the path
+   * stroke - a flag to tell function whether or not to stroke the line or
+   *          simply leave it as a path. (optional parameter, default false)
    */
   static void
   create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 		      PangoLayout *layout, double width, double height, 
-		      double x, double y, std::vector<coords> points);
+		      double x, double y, std::vector<coords> points,
+		      bool stroke=false);
 };
 
 #endif

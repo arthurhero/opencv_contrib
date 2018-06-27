@@ -342,7 +342,7 @@ PathCurve::four_point_to_cp(coords start,
 
 
 void 
-PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
+PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points, bool stroke) {
 
   unsigned int count = points.size();
 
@@ -353,13 +353,6 @@ PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
   coords end = points.back();
   points.pop_back();
   count -= 2;
-  
-  //if there are only 2 coords in points, draw line between the 2
-  if (count == 0) {
-    cairo_move_to(cr, start.first, start.second);
-    cairo_line_to(cr, end.first, end.second);
-    return;
-  }
 
   /* calculations
      y = a + bx + cx^2 + dx^3
@@ -410,7 +403,7 @@ PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
   //draw a 1st curve using cp (curve points)
   cairo_move_to(cr, start.first, start.second);
   cairo_curve_to(cr, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
-
+ 
   double fdd = coeff[1] + 2*coeff[2]*u + 3*coeff[3]*pow(u,2);
   
   //while still points left in vector, advance start to prev end and end to next point and draw curve
@@ -474,10 +467,11 @@ PathCurve::point_to_path(cairo_t *cr, std::vector<coords> points) {
     cairo_curve_to(cr, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
 
     fdd = coeff[1] + 2*coeff[2]*u + 3*coeff[3]*pow(u,2);
-
+    
     count -= 1;
   }
 
+  if(stroke) { cairo_stroke_preserve(cr); }
   return;
 }
 
@@ -560,8 +554,8 @@ PathCurve::make_points_wave(double width, double height, int num_points, int see
 
   std::vector<coords> points;
 
-  if (num_points < 3) return points; //verify preconditions
-
+  if (num_points < 3) num_points = 3; //verify preconditions
+  
   int x_variance, y_variance;
   double x, y;    
 
@@ -579,7 +573,7 @@ PathCurve::make_points_wave(double width, double height, int num_points, int see
 
     x = x_variance + ((width / (num_points - 1)) * i);
     y = height - y_variance; //ensure points stay above the bottom of the canvas
-
+   
     coords new_point(x,y);
     points.push_back(new_point);
   }
@@ -624,12 +618,10 @@ PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *li
 void 
 PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 			    PangoLayout *layout, double x, double y, double radius, 
-			    double width, double height, short direction
+			    double width, double height, short direction,
 			    std::vector<coords> points) {
-  if (radius < .5*width) radius = .5*width; //verify preconditions
 
-  //set the points for the path
-  std::vector<coords> points = points;
+  if (radius < .5*width) radius = .5*width; //verify preconditions
 
   //draw path shape
   points_to_arc_path(cr, points, radius, width, height, direction); 
@@ -656,9 +648,10 @@ PathCurve::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *li
 
 
 void
-PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-			       PangoLayout *layout, double width, double height,
-			       double x, double y, int num_points, int seed) {
+PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, 
+			       PangoLayoutLine *line, PangoLayout *layout, 
+			       double width, double height, double x, double y, 
+			       int num_points, int seed) {
 
   if (num_points < 3) num_points = 3; //verify preconditions
 
@@ -669,7 +662,6 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine 
 
   // Decrease tolerance, since the text going to be magnified 
   cairo_set_tolerance (cr, 0.01);
-
 
   path = cairo_copy_path_flat (cr);
 
@@ -688,15 +680,12 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine 
 
 
 void
-PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-			       PangoLayout *layout, double width, double height,
-			       double x, double y, std::vector<coords> points) {
+PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, 
+			       PangoLayoutLine *line, PangoLayout *layout, 
+			       double width, double height, double x, double y, 
+			       std::vector<coords> points, bool stroke) {
 
-
-  //set the points for the path
-  std::vector<coords> points = points;
-
-  point_to_path(cr, points); //draw path shape
+  point_to_path(cr, points, stroke); //draw path shape
 
   // Decrease tolerance, since the text going to be magnified 
   cairo_set_tolerance (cr, 0.01);
@@ -715,4 +704,5 @@ PathCurve::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine 
 
   //clean up
   cairo_path_destroy (path);
+  
 }
