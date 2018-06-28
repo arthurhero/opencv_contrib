@@ -169,7 +169,6 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
 
     // set line style
     if(dashed) {
-      printf("drawing dashed\n");
       pattern_len = rand() % 6;
       double dash_pattern[pattern_len];
 
