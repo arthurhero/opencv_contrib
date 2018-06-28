@@ -6,6 +6,7 @@
 
 #include "opencv2/text/text_synthesizer.hpp"
 #include "opencv2/text/text_transformations.hpp"
+#include "opencv2/text/flow_lines.hpp"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -247,6 +248,7 @@ namespace cv{
 
 
             TextTransformations tt;
+            FlowLines fl;
 
 
         }//unnamed namespace
@@ -401,8 +403,8 @@ namespace cv{
 
             //bg features
             colordiffProb_{0.5,0.5,0,0.2},
-            distracttextProb_{0,0,0.5,0},
-            //distracttextProb_{1,1,1,1},
+            //distracttextProb_{0,0,0.5,0},
+            distracttextProb_{0.2,0.5,0.8,0.5},
             boundryProb_{0.2,0,0.3,0},
             //colorblobProb_{0.1,0,0,0.1},
             colorblobProb_{1,1,1,1},
@@ -729,7 +731,7 @@ namespace cv{
                         cout << "new width " << textWidth << endl;
                         textHeight = ratio*textWidth;
                         cout << "new height " << textHeight << endl;
-                        patchWidth = (int)(cosine*textWidth+sine*textHeight)/3*4;
+                        patchWidth = (int)(cosine*textWidth+sine*textHeight);
 
                         cur_size = pango_font_description_get_size(desc);
                         size = (int)((double)cur_size/ink_h*textHeight);
@@ -877,6 +879,19 @@ namespace cv{
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
                         tt.addBgPattern(cr, width, this->resHeight_, true, true, false, time(NULL));
+                    }
+                    if (find(features.begin(), features.end(), Railroad)!= features.end()) {
+                        fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                    }
+                    if (find(features.begin(), features.end(), Boundry)!= features.end()) {
+                        fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                    }
+                    if (find(features.begin(), features.end(), Straight)!= features.end()) {
+                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                    }
+                    if (find(features.begin(), features.end(), Riverline)!= features.end()) {
+                        fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
                     }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));

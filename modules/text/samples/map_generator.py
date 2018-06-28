@@ -37,12 +37,12 @@ def generator():
     global s
     k=0
     #while True:
-    while k<1000:
+    while k<100000:
         caption,mat=s.generateSample()
+        #yield s.generateSample()
         print caption
         k=k+1
 
-# Main Programm
 # Main Programm
 
 if __name__=='__main__':
@@ -52,6 +52,8 @@ if __name__=='__main__':
     end=time.time()
     print end-start
     '''
+    
     map_generator=generator()
     next(map_generator)
     '''
+    

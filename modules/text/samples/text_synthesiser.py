@@ -44,10 +44,21 @@ def updateTime(x):
     global pause
     pause=x
 
+def read_words(words_file):
+    open_file = open(words_file, 'r')
+    words_list =[]
+    contents = open_file.readlines()
+    for i in range(len(contents)):
+       words_list.append(contents[i].strip('\n'))
+    return words_list    
+    open_file.close()
+
 def initialiseSynthesizers():
     global s
     global words
     global fonts
+
+    words = read_words("IA/Civil.txt")
     s.setSampleCaptions(words)
 
     s.setBlockyFonts(blocky_fonts)

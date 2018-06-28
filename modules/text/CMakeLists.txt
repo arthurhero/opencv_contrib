@@ -12,6 +12,7 @@ use_cxx11()
 
 SET(TARGET_SRC
     text_transformations.cpp
+    flow_lines.cpp
     )
 
 set(the_description "Text Detection and Recognition")
