@@ -12,16 +12,16 @@
 class FlowLines : PathCurve {
 private: //----------------------- PRIVATE METHODS --------------------------
   /*
-   * Takes and arbitrarily sets an array pattern for cairo_set_dash, returns array size
+   * Takes array size, returns randomly assigned array of specified len
    */
-  static int
-  set_dash_pattern(double * pattern);
+  static void
+  set_dash_pattern(double *pattern, int len);
 
   /*
-    translates linewidth and then strokes a line of arbitrary new color and then translates back
+    makes a thicker line behind the original that is a different gray-scale hue
   */
   static void
-  draw_boundry(cairo_t *cr, bool horizontal, double linewidth);
+  draw_boundry(cairo_t *cr, bool horizontal, double linewidth, double og_col);
 
   /*
     draws the main line (thin) and then another line (thick) with a specific dash pattern
@@ -35,7 +35,7 @@ private: //----------------------- PRIVATE METHODS --------------------------
     to give space for a second line to be drawn in parallel
   */
   static void
-  translate_parallel((cairo_t *cr, bool horizontal, double distance);
+  translate_parallel(cairo_t *cr, bool horizontal, double distance);
 
 public: //----------------------- PUBLIC METHODS --------------------------
 

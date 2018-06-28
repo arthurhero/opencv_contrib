@@ -16,14 +16,14 @@ int main() {
 
   double width = 600, height = 300;
 
-  bool boundry = false;
-  bool hatched = false;
-  bool dashed = false;
+  bool boundry = true; 
+  bool hatched = true; 
+  bool dashed = true; 
   bool curved = false;
-  bool doubleline = false;
-  bool horizontal = true;
+  bool doubleline = true; //broken does nothing
+  bool horizontal = false;
   int num_lines = 5; 
-  int seed = 287;
+  int seed = 23346487;
   
   //initialize canvas vars
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 
