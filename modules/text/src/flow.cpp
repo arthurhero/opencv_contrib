@@ -16,12 +16,12 @@ int main() {
 
   double width = 600, height = 300;
 
-  bool boundry = true; 
-  bool hatched = true; 
-  bool dashed = true; 
-  bool curved = false;
-  bool doubleline = true; //broken does nothing
-  bool horizontal = false;
+  bool boundry = false; 
+  bool hatched = false; 
+  bool dashed = false; 
+  bool curved = true;
+  bool doubleline = true; 
+  bool horizontal = true;
   int num_lines = 5; 
   int seed = 23346487;
   
@@ -37,7 +37,8 @@ int main() {
   cairo_move_to(cr, 0,0);
 
   /*use that good stuff here*/
-  FlowLines::addLines(cr, boundry, hatched, dashed, curved, doubleline, horizontal, num_lines,seed, width, height);
+  for(int i = 0; i < num_lines; i++)
+    FlowLines::addLines(cr, boundry, hatched, dashed, curved, doubleline, horizontal, seed+i, width, height);
 
   //clean up
   cairo_destroy(cr);
