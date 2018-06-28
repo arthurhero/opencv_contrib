@@ -19,11 +19,11 @@ int main() {
   bool boundry = false;
   bool hatched = false;
   bool dashed = false;
-  bool curved = true;
+  bool curved = false;
   bool doubleline = false;
-  bool horizontal = false;
-  int num_lines = 10; 
-  int seed = 10698;
+  bool horizontal = true;
+  int num_lines = 5; 
+  int seed = 287;
   
   //initialize canvas vars
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 

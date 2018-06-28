@@ -29,18 +29,54 @@ FlowLines::set_dash_pattern(double * pattern) {
 
 
 void
-FlowLines::draw_boundry(cairo_t *cr, double linewidth) {
+FlowLines::draw_boundry(cairo_t *cr, bool horizontal, double linewidth) {
 
+  //translate a linewidth to draw border line
+  translate_parallel(cr, horizontal, linewidth);
+
+  //set border line gray-scale color (keep it lighter than original)
+  double color = .3 + (rand() % 100) / 100.0; 
+  cairo_set_source_rgb(cr, color, color, color);
+
+  cairo_stroke_preserve(cr); // preserve the path
+
+  //translate back to previous
+  translate_parallel(cr, horizontal, -linewidth);
 }
 
 
 void
 FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
+  //stroke original line, preserving path
+  cairo_stroke_preserve(cr);
 
+  //set width of hatches (2-10 times as thick as original line)
+  double wide = (2 + (rand() % 9)) * linewidth;
+  cairo_set_width(cr, wide);
+
+  //set dash pattern to be used
+  double on_len = linewidth / (1 + (rand() % 5));
+  double off_len = rand() % (int) (5 * on_len);
+  const double pattern[] = { on_len, off_len};
+  cairo_set_dash(cr, pattern, 2, 0);
+
+  //return to original settings
+  cairo_set_width(cr, linewidth);
+  cairo_set_dash(cr, pattern, 0, 0); 
 }
 
 void
-FlowLines::translate_parallel(bool horizontal, double linewidth) {
+FlowLines::translate_parallel(cairo_t *cr, bool horizontal, double distance) {
+  double xtrans = 0, ytrans = 0;
+
+  if(horizontal) { // line horizontal, translate in y direction
+    ytrans = distance;
+    cairo_translate(cr, xtrans, ytrans);
+
+  } else { // line vertical, translate in x direction
+    xtrans = distance; 
+    cairo_translate(cr, xtrans, ytrans);
+  }
 
 }
 
@@ -77,6 +113,8 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
 
     // randomly set translation and rotation based on orientation 
     if(horizontal) { //horizontal line orientation
+      //make a starting point for straight lines
+      x = 0, y = height - (rand() % height); // y variation of 0-height along left side
       //make a starting translation and angle
       angle = ((rand() % 7854) - (rand() % 7854))/10000.0; //get angle +- PI/4
       translation_x = (rand() % width) - (rand() % width); // +- width
@@ -87,21 +125,27 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
       cairo_rotate(cr, angle); 
 
     } else { //vertical line orientation
+      //make a starting point for straight lines
+      y = 0, x = width - (rand() % width); // x variation of 0-width along top side
       //make a starting translation and angle
       angle = -((3 * 7854) - 2 * (rand() % 7854))/10000.0; //get angle from PI/4 to 3PI/4
       
-      translation_y = -height/2.0 + (rand() % (int)(height/2.0)) - (rand() % (int)(height/2.0));// =================================================
-      translation_x = (rand() % (int) (width/2.0)); //- (rand() % height); // +- height
-      printf("rot = %f tran_x = %d tran_y = %d\n", angle, translation_x, translation_y); //===============================================
       
-      //translate to curved line start point, rotate around it, translate back
+      //translate to approximate line center point, rotate around it, translate back
       if(curved) {
+	// try to keep xy translations in bounds of surface. finiky
+	translation_y = -height/2.0 + (rand() % (int)(height/2.0)) - (rand() % (int)(height/2.0));
+	translation_x = (rand() % (int) (width/2.0)); 
+
 	cairo_translate(cr, width/2.0, height);
 	cairo_rotate(cr, angle); 
 	cairo_translate(cr, translation_x, translation_y);
-      } else { //if line is straight, just translate and rotate
+
+      } else { //if line is straight, just translate 
+	translation_x = 0;
+	translation_y = (rand() % (int) (height)) - (rand() % height); // +- height
+	std::cout << "ty = " << translation_y << " rot = " << angle << " x = " << x << "\n"; //===============================
 	cairo_translate(cr, translation_x, translation_y);
-	cairo_rotate(cr, angle); 
       }
     }
 

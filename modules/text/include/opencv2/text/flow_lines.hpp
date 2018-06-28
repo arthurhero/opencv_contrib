@@ -21,7 +21,7 @@ private: //----------------------- PRIVATE METHODS --------------------------
     translates linewidth and then strokes a line of arbitrary new color and then translates back
   */
   static void
-  draw_boundry(cairo_t *cr, double linewidth);
+  draw_boundry(cairo_t *cr, bool horizontal, double linewidth);
 
   /*
     draws the main line (thin) and then another line (thick) with a specific dash pattern
@@ -31,11 +31,11 @@ private: //----------------------- PRIVATE METHODS --------------------------
   draw_hatched(cairo_t *cr, double linewidth);
 
   /*
-    translates a just enough either up or down (based on the input line orientation)
+    translates distance either up or down (based on the input line orientation)
     to give space for a second line to be drawn in parallel
   */
   static void
-  translate_parallel(bool horizontal, double linewidth);
+  translate_parallel((cairo_t *cr, bool horizontal, double distance);
 
 public: //----------------------- PUBLIC METHODS --------------------------
 
