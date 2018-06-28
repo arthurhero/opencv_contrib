@@ -1,5 +1,7 @@
 //#include "opencv2/text/path_curve.hpp"
+//#include "opencv2/text/flow_lines.hpp"
 #include "../include/opencv2/text/path_curve.hpp"
+#include "../include/opencv2/text/flow_lines.hpp"
 #include <pango/pangocairo.h>
 #include <math.h>
 #include <algorithm>
@@ -7,70 +9,8 @@
 
 #include <iostream>
 
-
-/////////////////// header//////////////////////////////
-
-/*
- * A class that holds methods to handle all synthetic flow line generation.
- * Inherits from PathCurve class for access to curving functions and protected
- * make_points_wave function
- */
-class
-FlowLines : PathCurve {
-private: //----------------------- PRIVATE METHODS --------------------------
-  /*
-   * Takes and arbitrarily sets an array pattern for cairo_set_dash, returns array size
-   */
-  int
-  set_dash_pattern(double * pattern);
-
-  /*
-translates linewidth and then strokes a line of arbitrary new color and then translates back
-   */
-void
-draw_boundry(double linewidth);
-
-  /*
-draws the main line (thin) and then another line (thick) with a specific dash pattern
-over it such that it looks as if the 2nd line is actually small perpendicular lines
-   */
-void
-draw_hatched(cairo_t *cr, double linewidth);
-
-  /*
-translates a just enough either up or down (based on the input line orientation)
-to give space for a second line to be drawn in parallel
-   */
-void
-translate_parallel(bool horizontal, double linewidth);
-
-public: //----------------------- PUBLIC METHODS --------------------------
-  /* IMPERFECT, CURVED VERTICAL LINES TEND TO APPEAR ON RIGHT
-   * Draws num_lines lines with arbitrary placement that have the characteristics
-   * specified by the parameters
-   *
-   * cr - cairo context
-   * boundry - if true, add a colored line that runs next to the original
-   * hatched - if true, add short perpendicular lines through the original
-   * dashed - if true, make line dashed
-   * curved - if true, add curvature with create_curved_path from pc
-   * doubleline - if true, add another line parallel to the original
-   * horizontal - if true, lines and transformations go left to right, else top to bottom
-   * num_lines - the number of lines to draw (the number of times this function loops)
-   * seed - the seed for the random number generator used in this method
-   * width - the width of the layout in pixels
-   * height - the height of the layout in pixels
-   */
-  static void
-  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int num_lines, int seed, int width, int height);
-
-
-
-};
-
-///////////////////////////// source ///////////////////////////////
-
 // SEE flow_lines.hpp FOR ALL DOCUMENTATION
+
 int
 FlowLines::set_dash_pattern(double * pattern) {
   double dash;  
@@ -89,7 +29,7 @@ FlowLines::set_dash_pattern(double * pattern) {
 
 
 void
-FlowLines::draw_boundry(double linewidth) {
+FlowLines::draw_boundry(cairo_t *cr, double linewidth) {
 
 }
 
@@ -203,18 +143,18 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
     for (int i = 0; i < parallels; i++) {
       // set boundry or not
       if(boundry) {
-	draw_boundry(); //TODO ========================================
+	draw_boundry(cr, line_width); //TODO ========================================
       } // else do nothing
 
       // set hatching or not
       if(hatched) {
-	draw_hatched(cr); //TODO =============================================
+	draw_hatched(cr, line_width); //TODO =============================================
       } // else do nothing
 
       // translate a little so that next line drawn in parallel
-      translate_parallel(horizontal); //TODO =========================================
+      translate_parallel(horizontal, line_width); //TODO =========================================
     }
-    */
+    
     // stroke to surface ======================================== done already in parallel loop???
     cairo_stroke(cr);
     
@@ -224,51 +164,3 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool c
 }
 
 
-////////////////////////////// main ////////////////////////////////
-
-
-// GET RID OF THIS MAIN LATER
-
-int main() {
-
-  cairo_status_t status;
-  cairo_surface_t *surface;
-  cairo_t *cr;
-  cairo_path_t *path;
-
-  double width = 600, height = 300;
-
-  bool boundry = false;
-  bool hatched = false;
-  bool dashed = false;
-  bool curved = true;
-  bool doubleline = false;
-  bool horizontal = false;
-  int num_lines = 10; 
-  int seed = 10698;
-  
-  //initialize canvas vars
-  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 
-					width, height);
-  cr = cairo_create(surface);
-  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0); //set bg to white
-  cairo_paint(cr);
-
-  //set drawing source color
-  cairo_set_source_rgb(cr, 0,0,0);
-  cairo_move_to(cr, 0,0);
-
-  /*use that good stuff here*/
-  FlowLines::addLines(cr, boundry, hatched, dashed, curved, doubleline, horizontal, num_lines,seed, width, height);
-
-  //clean up
-  cairo_destroy(cr);
-  status = cairo_surface_write_to_png (surface, "image.png");
-  cairo_surface_destroy (surface);
-  
-  if (status != CAIRO_STATUS_SUCCESS) {
-    g_printerr("Error saving png.");
-    return 1;
-  }
-  return 0;
-}
