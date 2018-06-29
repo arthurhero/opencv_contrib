@@ -40,6 +40,9 @@ private: //----------------------- PRIVATE METHODS --------------------------
 
 public: //----------------------- PUBLIC METHODS --------------------------
 
+  static void
+      manual_translate(cairo_t *cr, cairo_path_t *path, cairo_path_data_t *data, double xtrans, double ytrans);
+
   /* IMPERFECT, CURVED VERTICAL LINES TEND TO APPEAR ON RIGHT
    * Draws num_lines lines with random placement that have the characteristics
    * specified by the parameters
