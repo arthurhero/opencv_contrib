@@ -616,7 +616,7 @@ TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayo
 
 }
 
-
+/*
 void 
 TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
 				      PangoLayout *layout, double x, double y, double radius, 
@@ -647,7 +647,7 @@ TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayo
   cairo_path_destroy (path);
 
 }
-
+*/
 
 void
 TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, 

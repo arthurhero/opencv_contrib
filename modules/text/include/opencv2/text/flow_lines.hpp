@@ -27,12 +27,11 @@ private: //----------------------- PRIVATE METHODS --------------------------
    * Makes a thicker line behind the original that is a different gray-scale hue
    *
    * cr - cairo context
-   * horizontal - the orientation of the line (false = vertical)
    * linewidth - the width of the original line (used in scaling for new line)
    * og_col - the color of the original line
    */
   static void
-  draw_boundry(cairo_t *cr, bool horizontal, double linewidth, double og_col);
+  draw_boundry(cairo_t *cr, double linewidth, double og_col);
 
   /*
    * Draws the main line (thin) and then another line (thick) with a specific
@@ -79,7 +78,7 @@ private: //----------------------- PRIVATE METHODS --------------------------
 
   /*
    * Generates a wiggly curved line path (but doesn't stroke it to surface)
-   * using methods from the PathCurve class
+   * using methods from the TextTransformations class
    *
    * cr - cairo context
    * horizontal - gives the orientation of the line (false = vertical)
@@ -132,7 +131,7 @@ public: //----------------------- PUBLIC METHODS --------------------------
 
 /***************************** EXAMPLE MAIN *******************************
 
-#include "../include/opencv2/text/path_curve.hpp"
+#include "../include/opencv2/text/text_transformations.hpp"
 #include "../include/opencv2/text/flow_lines.hpp"
 #include <pango/pangocairo.h>
 

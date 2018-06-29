@@ -281,7 +281,7 @@ public:// -------------------- PUBLIC METHODS --------------------------------
 /******* skeleton main for using TextTransformations class ***********
 #include <pango/pangocairo.h>
 #include <math.h>
-#include "path_curve.hpp"
+#include "text_transformations.hpp"
 
 int main() {
 

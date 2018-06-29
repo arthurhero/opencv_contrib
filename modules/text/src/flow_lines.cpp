@@ -22,7 +22,7 @@ FlowLines::make_dash_pattern(double * pattern, int len) {
 
 
 void
-FlowLines::draw_boundry(cairo_t *cr, bool horizontal, double linewidth, double og_col) {
+FlowLines::draw_boundry(cairo_t *cr, double linewidth, double og_col) {
 
   //set border line gray-scale color (keep it lighter than original)
   double color = .3 + ((rand() % 50) / 100.0); 
@@ -55,20 +55,6 @@ FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
   cairo_set_dash(cr, pattern, 0, 0); 
 }
 
-
-void
-FlowLines::translate_parallel(cairo_t *cr, bool horizontal, double distance) {
-  double xtrans = 0, ytrans = 0;
-
-  if(horizontal) { // line horizontal, translate in y direction
-    ytrans = distance;
-    cairo_translate(cr, xtrans, ytrans);
-
-  } else { // line vertical, translate in x direction
-    xtrans = distance; 
-    cairo_translate(cr, xtrans, ytrans);
-  }
-}
 
 
 void
@@ -201,14 +187,14 @@ FlowLines::generate_curve(cairo_t *cr, bool horizontal, int width, int height) {
 
   //get correct point vector based on line orientation
   if(horizontal) {
-    points = PathCurve::make_points_wave(width, height, num_points, rand());
+    points = TextTransformations::make_points_wave(width, height, num_points, rand());
 
   } else {
-    points = PathCurve::make_points_wave(height, height, num_points, rand());
+    points = TextTransformations::make_points_wave(height, height, num_points, rand());
   } 
 
   //curve the path and give extra optional parameter to stroke the path
-  PathCurve::create_curved_path(cr,path,line,layout,width,height,0,0,points,true);
+  TextTransformations::create_curved_path(cr,path,line,layout,width,height,0,0,points,true);
 }
 
 
@@ -218,7 +204,6 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
 		    int seed, int width, int height){
 
   double color, magic_line_ratio, line_width;
-  int num_points, translation_x, translation_y, parallels;
   coords start_point;
       
   srand(seed);
@@ -255,7 +240,7 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
   if(dashed) { set_dash_pattern(cr); } 
 
   // set boundry or not
-  if(boundry) { draw_boundry(cr, horizontal, line_width, color); }
+  if(boundry) { draw_boundry(cr, line_width, color); }
 
   // set hatching or not
   if(hatched) { draw_hatched(cr, line_width); } 
