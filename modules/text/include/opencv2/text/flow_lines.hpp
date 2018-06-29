@@ -87,6 +87,20 @@ private: //----------------------- PRIVATE METHODS --------------------------
   static void
   generate_curve(cairo_t *cr, bool horizontal, int width, int height);
 
+
+  /*
+   * Sets path orientation through rotation and translation
+   *
+   * cr - cairo context
+   * horizontal - gives the orientation of the line (false = vertical)
+   * curved - informs whether the line will be curved (false = straight)
+   * width - surface width
+   * height - surface height
+   */
+  static coords
+  orient_path(cairo_t *cr, bool horizontal, bool curved, int width, int height);
+
+
 public: //----------------------- PUBLIC METHODS --------------------------
 
   /* IMPERFECT, CURVED VERTICAL LINES TEND TO APPEAR ON RIGHT
@@ -113,3 +127,57 @@ public: //----------------------- PUBLIC METHODS --------------------------
 
 
 #endif
+
+/***************************** EXAMPLE MAIN *******************************
+
+#include "../include/opencv2/text/path_curve.hpp"
+#include "../include/opencv2/text/flow_lines.hpp"
+#include <pango/pangocairo.h>
+
+
+int main() {
+
+  cairo_status_t status;
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  cairo_path_t *path;
+
+  double width = 100, height = 33;
+
+  bool boundry = false; 
+  bool hatched = false; 
+  bool dashed = false; 
+  bool curved = false;
+  bool doubleline = false; 
+  bool horizontal = false;
+  int num_lines = 5; 
+  int seed = 65334;
+  
+  //initialize canvas vars
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 
+					width, height);
+  cr = cairo_create(surface);
+  cairo_set_source_rgb (cr, 1.0, 1.0, 1.0); //set bg to white
+  cairo_paint(cr);
+
+  //set drawing source color
+  cairo_set_source_rgb(cr, 0,0,0);
+  cairo_move_to(cr, 0,0);
+
+  //draw lines
+  for(int i = 0; i < num_lines; i++)
+    FlowLines::addLines(cr, boundry, hatched, dashed, curved, 
+                        doubleline, horizontal, seed+i, width, height);
+
+  //clean up
+  cairo_destroy(cr);
+  status = cairo_surface_write_to_png (surface, "image.png");
+  cairo_surface_destroy (surface);
+  
+  if (status != CAIRO_STATUS_SUCCESS) {
+    g_printerr("Error saving png.");
+    return 1;
+  }
+  return 0;
+}
+*******************************************************************/
