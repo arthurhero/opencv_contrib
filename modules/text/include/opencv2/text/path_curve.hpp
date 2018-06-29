@@ -233,7 +233,7 @@ public:// -------------------- PUBLIC METHODS --------------------------------
 		      PangoLayout *layout, double width, double height, 
 		      double x, double y, int num_points, int seed);
 
-<<<<<<< HEAD:modules/text/include/opencv2/text/text_transformations.hpp
+
   /* Add bg patters to the cr like even-spaced straight line, uneven-spaced
    * straight line, grid, etc.
    *
@@ -255,7 +255,7 @@ public:// -------------------- PUBLIC METHODS --------------------------------
   static void
       distractText (cairo_t *cr, int width, int height, char *font, 
               int seed); 
-=======
+
   /*
    * An overload for create_curved_path that allows for the points vector
    * to be set outside the function.   
@@ -270,7 +270,7 @@ public:// -------------------- PUBLIC METHODS --------------------------------
 		      PangoLayout *layout, double width, double height, 
 		      double x, double y, std::vector<coords> points,
 		      bool stroke=false);
->>>>>>> bg_synth:modules/text/include/opencv2/text/path_curve.hpp
+
 };
 
 #endif

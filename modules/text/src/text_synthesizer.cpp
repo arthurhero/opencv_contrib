@@ -5,8 +5,12 @@
 #include "opencv2/calib3d.hpp"
 
 #include "opencv2/text/text_synthesizer.hpp"
+<<<<<<< HEAD
 #include "opencv2/text/text_transformations.hpp"
 #include "opencv2/text/flow_lines.hpp"
+=======
+#include "opencv2/text/path_curve.hpp"
+>>>>>>> pull_branch
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -247,8 +251,12 @@ namespace cv{
             }
 
 
+<<<<<<< HEAD
             TextTransformations tt;
             FlowLines fl;
+=======
+            PathCurve pc;
+>>>>>>> pull_branch
 
 
         }//unnamed namespace
@@ -766,9 +774,15 @@ namespace cv{
                         tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
                         /*
                         if (this->rng_.next()%2==0) {
+<<<<<<< HEAD
                             tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
                         } else {
                             tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,3,time(NULL));
+=======
+                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
+                        } else {
+                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
+>>>>>>> pull_branch
                         }
                         */
                         cout << "after tt" << endl;

@@ -2,11 +2,12 @@
 #include <pango/pangocairo.h>
 #include <math.h>
 
-#ifndef TEXT_TRANSFORMATIONS_HPP
-#define TEXT_TRANSFORMATIONS_HPP
+#ifndef TEXT_TRANS_HPP
+#define TEXT_TRANS_HPP
 
 // rename pair of doubles for readability as coordinates (x,y)
 typedef std::pair<double, double> coords;
+
 typedef double parametrization_t;  
 
 /* Simple struct to hold a path and its parametrization */
@@ -19,24 +20,12 @@ typedef struct {
 typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
 
 class TextTransformations {
-protected:// -------------------- PRIVATE FUNCTIONS ---------------------------
+private:// -------------------- PRIVATE METHODS ---------------------------
+
+
+  ////////////// from Behdad's cairotwisted.c (required functions) /////////////
+
  
-  // rename pair of doubles for readability as coordinates (x,y)
-  typedef std::pair<double, double> coords;
-
-  ////////////// from behdad's cairotwisted.c (required functions) /////////////
-
-  typedef double parametrization_t;  
-
-  /* Simple struct to hold a path and its parametrization */
-  typedef struct {
-    cairo_path_t *path;
-    parametrization_t *parametrization;
-  } parametrized_path_t;
-
-  // path transforming function pointer
-  typedef void (*transform_point_func_t) (void *closure, double *x, double *y);
-
   /* Returns Euclidean distance between two points */
   static double
   two_points_distance (cairo_path_data_t *a, 
@@ -144,6 +133,7 @@ protected:// -------------------- PRIVATE FUNCTIONS ---------------------------
   points_to_arc_path(cairo_t *cr, std::vector<coords> points, double radius, 
 		     double width, double height, short direction);
 
+protected: //----------------- PROTECTED METHODS ----------------------------
   /*
    * Makes a vector of 2 x,y coordinates that follow the arc of the input radius.
    * For noticable results with minimal distortion, radius should be greater than
@@ -163,19 +153,20 @@ protected:// -------------------- PRIVATE FUNCTIONS ---------------------------
    * Makes and returns a vector of x,y coordinate points for
    * a wave path to be drawn along. Coordinate point variation
    * is determined with rng within certain bounds to prevent
-   * distorted or off surface results.
+   * distorted results.
    *
    * width - surface width in pixels
    * height - surface height in pixels
    * num_points - the number of points to push onto the vector 
-   *              (minimum 3) (range 3-5 for best results)
+   *              (minimum 3) (range 3-5 for least text distortion)
    * seed - the random number generator seed
    */
   static std::vector<coords>
   make_points_wave(double width, double height, int num_points, int seed);
 
 
-public:// ------------------ PUBLIC FUNCTIONS ------------------------------
+public:// -------------------- PUBLIC METHODS --------------------------------
+
   /*
    * Creates an arc path that allows for text to be drawn along
    * it. For minimal distortion and visible results, radius should 
@@ -210,12 +201,12 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
    *
    * points - vector of x,y coordinate pairs that are used to make the
    *          shape of the path
-   */
+   *
   static void
       create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line,
               PangoLayout *layout, double x, double y, double radius,
               double width, double height, short direction,
-              std::vector<coords> points);
+              std::vector<coords> points);*/
 
 
   /*
@@ -254,10 +245,10 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
    *          simply leave it as a path. (optional parameter, default false)
    */
   static void
-      create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line,
-              PangoLayout *layout, double width, double height,
-              double x, double y, std::vector<coords> points,
-              bool stroke=false);
+  create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line,
+		      PangoLayout *layout, double width, double height,
+		      double x, double y, std::vector<coords> points,
+		      bool stroke=false);
 
 
 
@@ -282,14 +273,15 @@ public:// ------------------ PUBLIC FUNCTIONS ------------------------------
   static void
       distractText (cairo_t *cr, int width, int height, char *font, 
               int seed); 
+
 };
 
 #endif
 
-/******* skeleton main for using TextTransform class ***********
+/******* skeleton main for using TextTransformations class ***********
 #include <pango/pangocairo.h>
 #include <math.h>
-#include "text_transformations.hpp"
+#include "path_curve.hpp"
 
 int main() {
 
@@ -323,13 +315,13 @@ int main() {
   pango_layout_set_markup (layout, "<span font='12'>TEXT</span>", -1);
 
   //instantiate class
-  TextTransformations tt;
+  TextTransformations pc;
 
   //DRAW TEXT CURVE-------------------------------------------
 
-  tt.create_curved_path(cr,path,line,layout,x,y,num_points,seed);
+  pc.create_curved_path(cr,path,line,layout,x,y,num_points,seed);
   OR
-    tt.create_arc_path(cr,path,line,layout,x,y,radius,width,height,direction);
+    pc.create_arc_path(cr,path,line,layout,x,y,radius,width,height,direction);
 
   //----------------------------------------------------------
 

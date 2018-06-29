@@ -1,14 +1,14 @@
 #include <math.h>
-#include <cmath>
 #include <algorithm>
 #include <stdlib.h>
 #include <pango/pangocairo.h>
 #include "opencv2/text/text_transformations.hpp"
 
-using namespace std;
+
 // SEE text_transformations.hpp FOR ALL DOCUMENTATION
 
-//////////////////////////////////////////////////////// from behdad's cairotwisted.c (required functions)
+
+///////////////////////////////// from behdad's cairotwisted.c (required functions)
 
 double
 TextTransformations::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
@@ -356,13 +356,6 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
   coords end = points.back();
   points.pop_back();
   count -= 2;
-  
-  //if there are only 2 coords in points, draw line between the 2
-  if (count == 0) {
-    cairo_move_to(cr, start.first, start.second);
-    cairo_line_to(cr, end.first, end.second);
-    return;
-  }
 
   /* calculations
      y = a + bx + cx^2 + dx^3
@@ -413,7 +406,7 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
   //draw a 1st curve using cp (curve points)
   cairo_move_to(cr, start.first, start.second);
   cairo_curve_to(cr, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
-
+ 
   double fdd = coeff[1] + 2*coeff[2]*u + 3*coeff[3]*pow(u,2);
   
   //while still points left in vector, advance start to prev end and end to next point and draw curve
@@ -477,7 +470,7 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
     cairo_curve_to(cr, cp1.first, cp1.second, cp2.first, cp2.second, end.first, end.second);
 
     fdd = coeff[1] + 2*coeff[2]*u + 3*coeff[3]*pow(u,2);
-
+    
     count -= 1;
   }
 
@@ -563,36 +556,30 @@ TextTransformations::make_points_wave(double width, double height, int num_point
 
   std::vector<coords> points;
 
-  if (num_points < 3) return points; //verify preconditions
-
+  if (num_points < 3) num_points = 3; //verify preconditions
+  
   int x_variance, y_variance;
   double x, y;    
 
   //initialize rng.with seed
   srand (seed);
 
-  //cout << "before for" << endl;
   //created num_points x,y coords
   for(int i = num_points - 1; i >= 0; i--) {
     //y variance of + 0 to 1/8 height
-    //cout << "yv" << endl;
     y_variance = (rand() % (int) ((1.0/8.0) * height));
 
     //x variance of +- 1/8 (width/num_points - 1)
-    //cout << "xv" << endl;
     x_variance = (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))))
       - (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))));
-
-    //cout << "x" << endl;
-    x = x_variance + ((width / (num_points - 1)) * i);
-    //cout << "y" << endl;
+  
+    x = x_variance + ((width / (num_points - 1)) * i);;
     y = height - y_variance; //ensure points stay above the bottom of the canvas
-
+   
     coords new_point(x,y);
     points.push_back(new_point);
   }
-  //cout << "after for" << endl;
-
+  
   return points;
 }
 
@@ -630,92 +617,121 @@ TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayo
 }
 
 
+void 
+TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
+				      PangoLayout *layout, double x, double y, double radius, 
+				      double width, double height, short direction,
+				      std::vector<coords> points) {
+
+  if (radius < .5*width) radius = .5*width; //verify preconditions
+
+  //draw path shape
+  points_to_arc_path(cr, points, radius, width, height, direction); 
+  
+  // Decrease tolerance, since the text going to be magnified 
+  cairo_set_tolerance (cr, .01);
+
+  path = cairo_copy_path_flat (cr);
+
+
+  cairo_new_path (cr);
+
+  line = pango_layout_get_line_readonly (layout, 0);
+
+  cairo_move_to (cr, x,y); //establish how far from/along path the text is
+  pango_cairo_layout_line_path (cr, line);
+
+  map_path_onto (cr, path);
+
+  //clean up
+  cairo_path_destroy (path);
+
+}
+
+
 void
-TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-					 PangoLayout *layout, double width, double height,
-					 double x, double y, int num_points, int seed) {
+TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, 
+					 PangoLayoutLine *line, PangoLayout *layout, 
+					 double width, double height, double x, double y, 
+					 int num_points, int seed) {
 
   if (num_points < 3) num_points = 3; //verify preconditions
 
   //set the points for the path
-  //cout << "make points" << endl;
   std::vector<coords> points = make_points_wave(width, height, num_points, seed);
 
-  //cout << "to path" << endl;
   point_to_path(cr, points); //draw path shape
 
   // Decrease tolerance, since the text going to be magnified 
   cairo_set_tolerance (cr, 0.01);
 
-
-  //cout << "to flat" << endl;
   path = cairo_copy_path_flat (cr);
 
   cairo_new_path (cr);
 
-  //cout << "get line" << endl;
   line = pango_layout_get_line_readonly (layout, 0);
 
   cairo_move_to (cr, x,y);//establish how far from/along path the text is
   pango_cairo_layout_line_path (cr, line);
 
-  //cout << "map onto" << endl;
   map_path_onto (cr, path);
 
   //clean up
   cairo_path_destroy (path);
 }
 
+
 void
 TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path,
-        PangoLayoutLine *line, PangoLayout *layout,
-        double width, double height, double x, double y,
-        std::vector<coords> points, bool stroke) {
+					 PangoLayoutLine *line, PangoLayout *layout,
+					 double width, double height, double x, double y,
+					 std::vector<coords> points, bool stroke) {
 
-    point_to_path(cr, points); //draw path shape
+  point_to_path(cr, points); //draw path shape
 
-    //if stroking path, don't execute path destroying functions
-    if(!stroke) {
-        // Decrease tolerance, since the text going to be magnified 
-        cairo_set_tolerance (cr, 0.01);
+  //if stroking path, don't execute path destroying functions
+  if(!stroke) {
+    // Decrease tolerance, since the text going to be magnified 
+    cairo_set_tolerance (cr, 0.01);
 
 
-        path = cairo_copy_path_flat (cr);
+    path = cairo_copy_path_flat (cr);
 
-        cairo_new_path (cr);
+    cairo_new_path (cr);
 
-        line = pango_layout_get_line_readonly (layout, 0);
+    line = pango_layout_get_line_readonly (layout, 0);
 
-        cairo_move_to (cr, x,y);//establish how far from/along path the text is
-        pango_cairo_layout_line_path (cr, line);
+    cairo_move_to (cr, x,y);//establish how far from/along path the text is
+    pango_cairo_layout_line_path (cr, line);
 
-        map_path_onto (cr, path);
+    map_path_onto (cr, path);
 
-        //clean up
-        cairo_path_destroy (path);
-    }
+    //clean up
+    cairo_path_destroy (path);
+  }
 }
 
 
 
 void
-TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even, bool grid, bool curved, int seed) {
+TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even,
+				   bool grid, bool curved, int seed) {
 
-    //initialize rng.with seed
-    srand (seed);
+  //initialize rng.with seed
+  srand (seed);
 
-    //randomly choose number of lines from 2 to 10
-    int num = rand()%9+2;
+  //randomly choose number of lines from 2 to 10
+  int num = rand()%9+2;
 
-    //length of lines
-    int length = std::max(width, height)*1.414;
+  //length of lines
+  int length = std::max(width, height)*1.414;
 
-    //average spacing
-    int spacing = length / num;
+  //average spacing
+  int spacing = length / num;
 
-    //randomly choose rotation degree
-    int deg = rand()%360;
-    double rad = deg/180.0*3.14;
+  //randomly choose rotation degree
+  int deg = rand()%360;
+  double rad = deg/180.0*3.14;
 
   cairo_translate(cr, width/2.0, height/2.0);
   cairo_rotate(cr, rad);
@@ -732,20 +748,20 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   std::vector<int> xs;
   std::vector<int> ys;
   for (int k=0;k<rand_num;k++) {
-      int x_off = rand()%(width/2)-(width/4);
-      xs.push_back(x_off);
-      int y_off = rand()%length;
-      if (k==0) {
-          ys.push_back(y_off);
-      } else if (y_off<ys[0]){
-          ys.insert(ys.begin(),y_off);
-      } else if (k==1 && y_off>ys[0]){
-          ys.push_back(y_off);
-      } else if (k==2 && y_off>ys[1]){
-          ys.push_back(y_off);
-      } else if (k==2 && y_off<ys[1]){
-          ys.insert(ys.begin()+1,y_off);
-      }
+    int x_off = rand()%(width/2)-(width/4);
+    xs.push_back(x_off);
+    int y_off = rand()%length;
+    if (k==0) {
+      ys.push_back(y_off);
+    } else if (y_off<ys[0]){
+      ys.insert(ys.begin(),y_off);
+    } else if (k==1 && y_off>ys[0]){
+      ys.push_back(y_off);
+    } else if (k==2 && y_off>ys[1]){
+      ys.push_back(y_off);
+    } else if (k==2 && y_off<ys[1]){
+      ys.insert(ys.begin()+1,y_off);
+    }
   }
 
   //get a random initial spacing
@@ -753,141 +769,142 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   if(even) b=spacing;
   int cur_x = -(length-width)/2+b;
   for (int i=0; i<num;i++) {
-      std::vector<coords> points;
-      points.push_back(std::make_pair(cur_x,top_y));
-      if (curved) {
-          for (int k=0;k<rand_num;k++) {
-              points.push_back(std::make_pair(cur_x+xs[k],top_y+ys[k]));
-          }
+    std::vector<coords> points;
+    points.push_back(std::make_pair(cur_x,top_y));
+    if (curved) {
+      for (int k=0;k<rand_num;k++) {
+	points.push_back(std::make_pair(cur_x+xs[k],top_y+ys[k]));
       }
-      points.push_back(std::make_pair(cur_x,bottom_y));
-      lines.push_back(points);
-      cur_x+=(spacing-b)*2/num*(i+1)+b;
+    }
+    points.push_back(std::make_pair(cur_x,bottom_y));
+    lines.push_back(points);
+    cur_x+=(spacing-b)*2/num*(i+1)+b;
   }
 
   //draw the lines
   for (int i=0;i<num;i++){
-      std::vector<coords> points=lines[i];
-      point_to_path(cr, points); //draw path shape
-      cairo_stroke(cr);
+    std::vector<coords> points=lines[i];
+    point_to_path(cr, points); //draw path shape
+    cairo_stroke(cr);
   }
 
   if (grid) {
-      //deg+=90;
-      //rad = deg/180.0*3.14;
-      cairo_translate(cr, width/2.0, height/2.0);
-      //cairo_rotate(cr, rad);
-      cairo_rotate(cr, 3.14/2);
-      cairo_translate(cr, -width/2.0, -height/2.0);
-      for (int i=0;i<num;i++){
-          std::vector<coords> points=lines[i];
-          point_to_path(cr, points); //draw path shape
-          cairo_stroke(cr);
-      }
+    cairo_translate(cr, width/2.0, height/2.0);
+    cairo_rotate(cr, 3.14/2);
+    cairo_translate(cr, -width/2.0, -height/2.0);
+    for (int i=0;i<num;i++){
+      std::vector<coords> points=lines[i];
+      point_to_path(cr, points); //draw path shape
+      cairo_stroke(cr);
+    }
   }
 
   cairo_rotate(cr, 0);
 }
 
 void
-TextTransformations::colorDiff (cairo_t *cr, int width, int height, int seed, double color1, double color2) {
+TextTransformations::colorDiff (cairo_t *cr, int width, int height, int seed, 
+				double color1, double color2) {
  
-    //decide the number of color plates
-    srand (seed);
-    int num = rand()%2+1; //1~2
+  //decide the number of color plates
+  srand (seed);
+  int num = rand()%2+1; //1~2
 
-    //get random points on top and bottom border
-    //std::vector<coords> tops;
-    //std::vector<coords> bottoms;
-    for (int i=0;i<num;i++) {
-        if(i==0)cairo_set_source_rgb(cr,color1,color1,color1);
-        else cairo_set_source_rgb(cr,color2,color2,color2);
-        bool left = (bool)rand()%2;
-        int x_top=rand()%width;
-        if (left) {
-            cairo_move_to (cr, 0, 0);
-        } else {
-            cairo_move_to (cr, width, 0);
-        }
-        cairo_line_to (cr, x_top, 0);
-        int x_bottom=rand()%width;
-        cairo_line_to (cr, x_bottom, height);
-        if (left) {
-            cairo_line_to (cr, 0, height);
-            cairo_line_to (cr, 0, 0);
-        } else {
-            cairo_line_to (cr, width, height);
-            cairo_line_to (cr, width, 0);
-        }
-        cairo_fill(cr);
-        //tops.push_back(std::make_pair(x_top,0));
-        //bottoms.push_back(std::make_pair(x_bottom,height));
+  //get random points on top and bottom border
+  for (int i=0;i<num;i++) {
+    if(i==0)cairo_set_source_rgb(cr,color1,color1,color1);
+    else cairo_set_source_rgb(cr,color2,color2,color2);
+    bool left = (bool)rand()%2;
+    int x_top=rand()%width;
+    if (left) {
+      cairo_move_to (cr, 0, 0);
+    } else {
+      cairo_move_to (cr, width, 0);
     }
+    cairo_line_to (cr, x_top, 0);
+    int x_bottom=rand()%width;
+    cairo_line_to (cr, x_bottom, height);
+    if (left) {
+      cairo_line_to (cr, 0, height);
+      cairo_line_to (cr, 0, 0);
+    } else {
+      cairo_line_to (cr, width, height);
+      cairo_line_to (cr, width, 0);
+    }
+    cairo_fill(cr);
+  }
     
-    cairo_move_to (cr, 0, 0);
+  //return to origin
+  cairo_move_to (cr, 0, 0);
 
 }
 
 char
 TextTransformations::randomChar(int seed) {
-    srand (seed);
-    char ch;
-    int number = rand()%5; // 1/5 to be number
-    if (number==0){
-        ch=(char)(rand()%10+48);
-    } else {
-        ch=(char)((rand()%26+65)+(rand()%2)*32);
-    }
-    return ch;
+  srand (seed);
+  char ch;
+  int number = rand()%5; // 1/5 chance number==0
+  if (number==0){
+    ch=(char)(rand()%10+48);
+  } else {
+    ch=(char)((rand()%26+65)+(rand()%2)*32);
+  }
+  return ch;
 }
 
 void
 TextTransformations::distractText (cairo_t *cr, int width, int height, char *font, int seed) {
 
-    srand (seed);
-    //generate text
-    int len = rand()%10+1;
-    char text[len+1];
-    for (int i=0;i<len;i++) {
-        text[i]=randomChar(rand());
-    }
-    text[len]='\0';
+  srand (seed);
 
-    PangoLayout *layout;
-    PangoFontDescription *desc;
-    layout = pango_cairo_create_layout (cr);
+  //generate text
+  int len = rand()%10+1;
+  char text[len+1];
 
-    desc = pango_font_description_from_string(font);
-    pango_layout_set_font_description (layout, desc);
-    pango_layout_set_text(layout, text, -1);
+  for (int i=0;i<len;i++) {
+    text[i]=randomChar(rand());
+  }
+  text[len]='\0'; //null terminate cstring
 
-    PangoRectangle *ink_rect = new PangoRectangle;
-    PangoRectangle *logical_rect = new PangoRectangle;
-    pango_layout_get_extents(layout, ink_rect, logical_rect);
+  //use pango to turn cstring into vector text
+  PangoLayout *layout;
+  PangoFontDescription *desc;
+  layout = pango_cairo_create_layout (cr);
 
-    int ink_w=ink_rect->width/1024;
-    int ink_h=ink_rect->height/1024;
+  desc = pango_font_description_from_string(font);
+  pango_layout_set_font_description (layout, desc);
+  pango_layout_set_text(layout, text, -1);
 
-    int x = rand()%width;
-    int y = rand()%height;
+  PangoRectangle *ink_rect = new PangoRectangle;
+  PangoRectangle *logical_rect = new PangoRectangle;
+  pango_layout_get_extents(layout, ink_rect, logical_rect);
 
-    cairo_translate (cr, (double)x, (double)y);
+  int ink_w=ink_rect->width/1024;
+  int ink_h=ink_rect->height/1024;
 
-    //randomly choose rotation degree
-    int deg = rand()%360;
-    double rad = deg/180.0*3.14;
+  int x = rand()%width;
+  int y = rand()%height;
 
-    cairo_translate (cr, ink_w/2.0, ink_h/2.0);
-    cairo_rotate(cr, rad);
-    cairo_translate (cr, -ink_w/2.0, -ink_h/2.0);
+  cairo_translate (cr, (double)x, (double)y);
 
-    pango_cairo_show_layout (cr, layout);
+  //randomly choose rotation degree
+  int deg = rand()%360;
+  double rad = deg/180.0*3.14;
 
-    cairo_translate (cr, -x, -y);
-    cairo_rotate(cr, 0);
-    g_object_unref(layout);
-    pango_font_description_free (desc);
-    free(logical_rect);
-    free(ink_rect);
+  cairo_translate (cr, ink_w/2.0, ink_h/2.0);
+  cairo_rotate(cr, rad);
+  cairo_translate (cr, -ink_w/2.0, -ink_h/2.0);
+
+  //put text on cairo context
+  pango_cairo_show_layout (cr, layout);
+
+  //clean up
+  cairo_translate (cr, -x, -y);
+  cairo_rotate(cr, 0);
+  g_object_unref(layout);
+  pango_font_description_free (desc);
+  free(logical_rect);
+  free(ink_rect);
 }
+
 
