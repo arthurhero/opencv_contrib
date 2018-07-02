@@ -8,6 +8,7 @@
 #include "opencv2/text/text_transformations.hpp"
 #include "opencv2/text/flow_lines.hpp"
 
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -155,7 +156,6 @@ namespace cv{
                 }
 
             }
-
 
             TextTransformations tt;
             FlowLines fl;
@@ -546,8 +546,8 @@ namespace cv{
                     pango_layout_set_font_description (layout, desc);
 
                     int spacing_ = (int)(1024*spacing);
-
-                    std::ostringstream stm;
+		    
+		    std::ostringstream stm;
                     stm << spacing_;
                     string mark = "<span letter_spacing='"+stm.str()+"'>"+caption+"</span>";
                     cout << "mark " << mark << endl;
@@ -649,6 +649,7 @@ namespace cv{
                         PangoLayoutLine *line;
                         cout << "before tt" << endl;
                         tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,this->rng_.next()%3+3,this->rng_.next());
+
                         cout << "after tt" << endl;
                         double x1,x2,y1,y2;
                         cairo_path_extents(cr,&x1,&y1,&x2,&y2);
@@ -858,21 +859,31 @@ namespace cv{
                     }
                     if (find(features.begin(), features.end(), Railroad)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Boundry)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        cairo_set_source_rgb(cr,color,color,color);
-                        fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Straight)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Riverline)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
