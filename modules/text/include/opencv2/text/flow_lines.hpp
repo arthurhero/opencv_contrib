@@ -29,9 +29,10 @@ private: //----------------------- PRIVATE METHODS --------------------------
    * cr - cairo context
    * linewidth - the width of the original line (used in scaling for new line)
    * og_col - the color of the original line
+   * horizontal - the orientation of the line (false = vertical)
    */
   static void
-  draw_boundry(cairo_t *cr, double linewidth, double og_col);
+  draw_boundry(cairo_t *cr, double linewidth, double og_col, bool horizontal);
 
   /*
    * Draws the main line (thin) and then another line (thick) with a specific

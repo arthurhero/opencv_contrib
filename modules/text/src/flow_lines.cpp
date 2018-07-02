@@ -22,13 +22,17 @@ FlowLines::make_dash_pattern(double * pattern, int len) {
 
 
 void
-FlowLines::draw_boundry(cairo_t *cr, double linewidth, double og_col) {
+FlowLines::draw_boundry(cairo_t *cr, double linewidth, double og_col, bool horizontal) {
 
-    //set border line gray-scale color (keep it lighter than original)
+    // set border line gray-scale color (keep it lighter than original)
     double color = .3 + ((rand() % 50) / 100.0); 
     cairo_set_source_rgb(cr, color, color, color);
-    cairo_set_line_width(cr, 3*linewidth);
-    cairo_stroke_preserve(cr); // preserve the path
+
+    // calculate a random distance between lines (range 0 - linewidth)
+    double distance = (rand() % (int) ceil(linewidth * 100)) / 100.0;
+    
+    // draw a secondary line next to original
+    draw_parallel(cr, horizontal, distance);
 
     // reset color and line width
     cairo_set_source_rgb(cr, og_col, og_col, og_col);
@@ -150,7 +154,6 @@ FlowLines::orient_path(cairo_t *cr, bool horizontal, bool curved, int width, int
     //make a starting translation and angle
     angle = -((3 * 7854) - 2 * (rand() % 7854))/10000.0; //get angle from PI/4 to 3PI/4
       
-      
     //translate to approximate curved line center point, rotate around it, translate back
     if(curved) {
       // try to keep xy translations in bounds of surface. finiky
@@ -238,13 +241,13 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
   if(dashed) { set_dash_pattern(cr); } 
 
   // set boundry or not
-  if(boundry) { draw_boundry(cr, line_width, color); }
+  if(boundry) { draw_boundry(cr, line_width, color, horizontal); }
 
   // set hatching or not
   if(hatched) { draw_hatched(cr, line_width); } 
 
   // draw parallel or not
-  if(doubleline) { draw_parallel(cr, horizontal, 2*line_width); }
+  if(doubleline) { draw_parallel(cr, horizontal, 3*line_width); }
     
   //stroke
   cairo_stroke(cr);
