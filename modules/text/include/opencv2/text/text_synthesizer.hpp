@@ -89,7 +89,6 @@ namespace cv
 
                 //independent text properties
                 double missingProbability_;
-                double noiseProbability_;
                 double rotatedProbability_;
                 double rotatedAngle_;
 

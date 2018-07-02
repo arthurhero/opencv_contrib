@@ -102,10 +102,10 @@ FlowLines::translate_parallel(cairo_t *cr, bool horizontal, double distance) {
 void
 FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
         bool curved, bool doubleline, bool horizontal, 
-        int num_lines, int seed, int width, int height){
+        int num_lines, int seed, int width, int height, double color){
     //init variables
     std::vector<coords> points;
-    double x,y,angle,color, magic_line_ratio, line_width;
+    double x,y,angle, magic_line_ratio, line_width;
     int num_points, pattern_len, translation_x, translation_y, parallels;
 
     PangoLayout *layout;
@@ -117,7 +117,6 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
     layout = pango_cairo_create_layout (cr);
 
     //set line color and width
-    color = (rand() % 20) / 100.0; //keep color fairly dark
     cairo_set_source_rgb(cr, color, color, color); // gray-scale
     magic_line_ratio = 1.0/(10.0 + (rand() % 20));
     line_width = std::min(width, height) * magic_line_ratio;

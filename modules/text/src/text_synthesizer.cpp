@@ -83,31 +83,6 @@ namespace cv{
                 cv::merge(Imgs2,MC3);
             }
 
-            void addNoise (cairo_surface_t *text, int degree){
-                RNG rng_;//Randon number generator used for all distributions
-                int height = cairo_image_surface_get_height(text);
-                int width = cairo_image_surface_get_width(text);
-                unsigned int prob = degree * 5; //0~50
-                unsigned char *data;
-                data = cairo_image_surface_get_data(text);
-
-                cairo_surface_flush(text);
-                unsigned char tmp;
-                int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width);
-                for (int r=0;r<height;r++) {
-                    for (int c=0;c<stride;c+=4) {
-                        if (rng_.next()%100<prob && data[(r*stride+c)+3]!=0){
-                            tmp = rng_.next()%56; 
-                            data[r*stride+c]+=tmp;
-                            data[r*stride+c+1]+=tmp;
-                            data[r*stride+c+2]+=tmp;
-                        }
-                    }
-                }
-                cairo_surface_mark_dirty(text);
-                cairo_surface_flush(text);
-            }
-
             void addSpots (cairo_surface_t *text, int degree, bool trans, int color){
                 RNG rng_;//Randon number generator used for all distributions
                 int height = cairo_image_surface_get_height(text);
@@ -301,7 +276,6 @@ namespace cv{
             }
         }
 
-
         //probabilities are all accumulative
         TextSynthesizer::TextSynthesizer(int sampleHeight):
             resHeight_(sampleHeight),
@@ -363,7 +337,6 @@ namespace cv{
 
             //independent properties
             missingProbability_=0.2;
-            noiseProbability_=0.3;
             rotatedProbability_=0.3;
 
 
@@ -502,36 +475,38 @@ namespace cv{
 
                     //get spacing degree
                     int spacing_prob = this->rng_.next()%10000;
-                    double spacing_deg=10;
-                    /*
-                    double spacing_deg=-0.6+exp(4)/10;
+                    double spacing_deg=-0.6+exp(4)/5;
                     for (int i=0;i<4;i++) {
                         if (spacing_prob<spacingProb[i]*10000) {
-                            spacing_deg=-0.6+exp((double)i)/10;
+                            spacing_deg=-0.6+exp((double)i)/5;
                             break;
                         }
                     }
-                    */
 
                     cout << "spacing deg " << spacing_deg << endl;
 
                     //get stretch degree
                     int stretch_prob = this->rng_.next()%10000;
-                    double stretch_deg=3;
-                    /*
-                    double stretch_deg=0.7+exp(4/2.0)/10;
+                    double stretch_deg=-0.5+exp(4/4.0);
                     for (int i=0;i<4;i++) {
                         if (stretch_prob<stretchProb[i]*10000) {
-                            stretch_deg=0.7+exp(i/2.0)/10;
+                            stretch_deg=-0.5+exp(i/4.0);
                             break;
                         }
                     }
-                    */
 
                     cout << "stretch deg " << stretch_deg << endl;
 
                     double fontsize = (double)this->resHeight_/4*3;
                     double spacing = fontsize/20*spacing_deg;
+
+                    int maxpad=this->resHeight_/10;
+                    int x_pad = this->rng_.next()%maxpad-maxpad/2;
+                    int y_pad = this->rng_.next()%maxpad-maxpad/2;
+                    cout << "pad " << x_pad << " " << y_pad << endl;
+
+                    double scale = (this->rng_.next()%5)/20.0+0.9;
+                    cout << "scale " << scale << endl;
 
                     //Start to draw a pango img
                     cairo_surface_t *surface;
@@ -539,6 +514,7 @@ namespace cv{
 
                     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 2000, this->resHeight_);
                     cr = cairo_create (surface);
+
 
                     char font[50];
                     cout << "generate font" << endl;
@@ -617,10 +593,8 @@ namespace cv{
                     int patchWidth = (int)ink_w;
                     cout << "patch width " << patchWidth << endl;
 
-                    cairo_scale(cr, stretch_deg, 1);
                     cout << "after stretch" << endl;
                     if (this->rotatedAngle_!=0) {
-                        cairo_scale(cr, 1/(double)stretch_deg, 1);
                         cout << "rotated angle" << this->rotatedAngle_ << endl;
                         cairo_rotate(cr, this->rotatedAngle_);
 
@@ -669,18 +643,12 @@ namespace cv{
                         x_off=(ink_x*height_ratio);
                         cairo_translate (cr, -x_off, -y_off);
                         pango_cairo_show_layout (cr, layout);
-                    } else if (curved && len>1) {
+                    } else if (curved && patchWidth > 10*this->resHeight_ && spacing_deg>=10) {
+                        cairo_scale(cr, stretch_deg, 1);
                         cairo_path_t *path;
                         PangoLayoutLine *line;
                         cout << "before tt" << endl;
-                        //tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
-                        if (this->rng_.next()%2==0) {
-                            cout << "3 points" << endl;
-                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,3,this->rng_.next());
-                        } else {
-                            cout << "4 points" << endl;
-                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,4,this->rng_.next());
-                        }
+                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,this->rng_.next()%3+3,this->rng_.next());
                         cout << "after tt" << endl;
                         double x1,x2,y1,y2;
                         cairo_path_extents(cr,&x1,&y1,&x2,&y2);
@@ -722,6 +690,7 @@ namespace cv{
                         cairo_destroy (cr_c);
                         cairo_surface_destroy (surface_c);
                     } else {
+                        cairo_scale(cr, stretch_deg, 1);
                         cairo_translate (cr, -ink_x, -ink_y);
                         pango_cairo_show_layout (cr, layout);
                     }
@@ -735,14 +704,6 @@ namespace cv{
 
                     cairo_identity_matrix(cr);
 
-                    //draw distracting text
-                    if (distract) {
-                        char font2[50];
-                        int shrink = this->rng_.next()%3+2;
-                        this->generateFont(font2,size/1024/shrink);
-                        tt.distractText(cr, patchWidth, this->resHeight_, font2, time(NULL));
-                    }
-
                     cout << "destroy cr" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr) << endl;
                     cairo_destroy (cr);
@@ -753,9 +714,27 @@ namespace cv{
                     surface_n = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, patchWidth, this->resHeight_);
                     cr_n = cairo_create (surface_n);
 
+                    //apply arbitrary padding and scaling
+                    cairo_translate (cr_n, x_pad, y_pad);
+
+                    cairo_translate (cr_n, patchWidth/2, this->resHeight_/2);
+                    cairo_scale(cr_n, scale, scale);
+                    cairo_translate (cr_n, -patchWidth/2, -this->resHeight_/2);
+
                     cairo_set_source_surface(cr_n, surface, 0, 0);
                     cairo_rectangle(cr_n, 0, 0, patchWidth, this->resHeight_);
                     cairo_fill(cr_n);
+
+                    cairo_identity_matrix(cr_n);
+
+                    cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
+                    //draw distracting text
+                    if (distract) {
+                        char font2[50];
+                        int shrink = this->rng_.next()%3+2;
+                        this->generateFont(font2,size/1024/shrink);
+                        tt.distractText(cr_n, patchWidth, this->resHeight_, font2, time(NULL));
+                    }
 
                     cout << "destroy cr_n" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr_n) << endl;
@@ -763,11 +742,6 @@ namespace cv{
                     cout << "destroy surface" << endl;
                     cout << "ref count " << cairo_surface_get_reference_count(surface) << endl;
                     cairo_surface_destroy (surface);
-
-                    cout << "adding noise" << endl;
-                    if(this->rndProbUnder(this->noiseProbability_)){
-                        addNoise(surface_n,1);
-                    }
 
                     cout << "add spots" << endl;
                     if(this->rndProbUnder(this->missingProbability_)){
@@ -790,9 +764,58 @@ namespace cv{
                     cairo_surface_destroy (surface_n);
 
                     cout << "after destroy stuff" << endl;
-                    
+
                     textImg.copyTo(output);
                     maskImg.copyTo(outputMask);
+
+                }
+
+                void addGaussianNoise(Mat& out){
+                    double sigma = (rng_.next()%10+1)/100.0;
+
+                    Mat noise = Mat(out.rows, out.cols, CV_32F);
+                    randn(noise, 0, sigma);
+                    vector<Mat> chs;
+                    cv::split(out,chs);
+
+                    for (int i=0;i<3;i++) {
+                        chs[i]+=noise;
+                        threshold(chs[i],chs[i],1.0,1.0,THRESH_TRUNC);
+                        threshold(chs[i],chs[i],0,1.0,THRESH_TOZERO);
+                    }
+
+                    merge(chs,out);
+                }
+
+                void addGaussianBlur(Mat& out){
+                    int ker_size = rng_.next()%2*2+1;
+                    GaussianBlur(out,out,Size(ker_size,ker_size),0,0,BORDER_REFLECT_101);
+                }
+
+                void addBgBias(cairo_t *cr, int width, int height, int color){
+
+                    cairo_pattern_t *pat = cairo_pattern_create_linear(width/2,0,width/2,height);
+                    cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,height/2,width,height/2);
+                    int num = rng_.next()%5+3; 
+                    int num2 = rng_.next()%30+5; 
+                    double offset = 1.0/(num-1);
+                    for (int i=0;i<num;i++){
+                        int color1 = color + rng_.next()%200-100;
+                        color1 = min(color1, 255);
+                        double dcolor = color1/255.0;
+                        cairo_pattern_add_color_stop_rgb(pat, i*offset, dcolor,dcolor,dcolor);
+                    }
+                    for (int i=0;i<num2;i++){
+                        int color2 = color + rng_.next()%200-100;
+                        color2 = min(color2, 255);
+                        double dcolor = color2/255.0;
+                        cairo_pattern_add_color_stop_rgb(pat2, i*offset, dcolor,dcolor,dcolor);
+                    }
+
+                    cairo_set_source(cr, pat);
+                    cairo_paint_with_alpha(cr,0.3);
+                    cairo_set_source(cr, pat2);
+                    cairo_paint_with_alpha(cr,0.3);
 
                 }
 
@@ -802,6 +825,7 @@ namespace cv{
                     cairo_t *cr;
                     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, this->resHeight_);
                     cr = cairo_create (surface);
+
                     cairo_set_source_rgb(cr, bg_color/255.0,bg_color/255.0,bg_color/255.0);
                     cairo_paint (cr);
 
@@ -813,6 +837,10 @@ namespace cv{
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
                         addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
                     }
+
+                    //add bg bias field
+                    addBgBias(cr, width, this->resHeight_, bg_color);
+
                     if (find(features.begin(), features.end(), Parallel)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
@@ -829,17 +857,22 @@ namespace cv{
                         tt.addBgPattern(cr, width, this->resHeight_, true, true, false, time(NULL));
                     }
                     if (find(features.begin(), features.end(), Railroad)!= features.end()) {
-                        fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
                     }
                     if (find(features.begin(), features.end(), Boundry)!= features.end()) {
-                        fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        cairo_set_source_rgb(cr,color,color,color);
+                        fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
                     }
                     if (find(features.begin(), features.end(), Straight)!= features.end()) {
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
+                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
                     }
                     if (find(features.begin(), features.end(), Riverline)!= features.end()) {
-                        fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next()%2+1, time(NULL), width, this->resHeight_, color);
                     }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
@@ -980,6 +1013,9 @@ namespace cv{
                     if(this->rndProbUnder(this->finalBlendProb_)){
                         blendWeighted(sample,sample,bgResized,1-blendAlpha,blendAlpha);
                     }
+
+                    addGaussianNoise(sample);
+                    addGaussianBlur(sample);
                 }
 
                 std::vector<String> listAvailableFonts() const {

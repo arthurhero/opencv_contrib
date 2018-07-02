@@ -60,7 +60,7 @@ public: //----------------------- PUBLIC METHODS --------------------------
    * height - the height of the layout in pixels
    */
   static void
-  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int num_lines, int seed, int width, int height);
+  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int num_lines, int seed, int width, int height, double color);
 
 };
 
