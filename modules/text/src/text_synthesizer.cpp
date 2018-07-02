@@ -885,6 +885,11 @@ namespace cv{
                             fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
                         }
                     }
+                    if (find(features.begin(), features.end(), Citypoint)!= features.end()) {
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        cairo_set_source_rgb(cr,color,color,color);
+                        tt.city_point(cr, width, this->resHeight_);
+                    }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
                     CairoToMat(surface,res);

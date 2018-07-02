@@ -4,7 +4,7 @@
 #include <pango/pangocairo.h>
 #include "opencv2/text/text_transformations.hpp"
 
-
+using namespace std;
 // SEE text_transformations.hpp FOR ALL DOCUMENTATION
 
 

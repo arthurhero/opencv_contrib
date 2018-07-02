@@ -56,18 +56,6 @@ private: //----------------------- PRIVATE METHODS --------------------------
   draw_parallel(cairo_t *cr, bool horizontal, double distance);
 
   /*
-   * Takes in a new path and manually translates each point by the input
-   * xtrans and ytrans
-   *
-   * cr - cairo context
-   * path - a new cairo path
-   * data - an enum that describes each portion of path
-   */
-  static void
-  manual_translate(cairo_t *cr, cairo_path_t *path, cairo_path_data_t *data, 
-		   double xtrans, double ytrans);
-
-  /*
    * Sets an arbitrary dash pattern to the path stored by cr
    *
    * cr - cairo context
