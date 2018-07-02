@@ -195,19 +195,6 @@ public:// -------------------- PUBLIC METHODS --------------------------------
 		   double width, double height, short direction);
 
 
-  /*
-   * An overload for create_arc_path that allows for the points vector
-   * to be set outside the function.
-   *
-   * points - vector of x,y coordinate pairs that are used to make the
-   *          shape of the path
-   *
-  static void
-      create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line,
-              PangoLayout *layout, double x, double y, double radius,
-              double width, double height, short direction,
-              std::vector<coords> points);*/
-
 
   /*
    * Creates a curved path from points using cubic interpolation, and allows 
@@ -260,19 +247,38 @@ public:// -------------------- PUBLIC METHODS --------------------------------
    *
    */
   static void
-      addBgPattern (cairo_t *cr, int width, int height, 
-              bool even, bool grid, bool curved, int seed);
+  addBgPattern (cairo_t *cr, int width, int height, 
+		bool even, bool grid, bool curved, int seed);
 
+  /*
+   *
+   */
   static void
-      colorDiff (cairo_t *cr, int width, int height, 
-              int seed, double color1, double color2); 
-
+  colorDiff (cairo_t *cr, int width, int height, 
+	     int seed, double color1, double color2); 
+  
+  /*
+   *
+   */
   static char
-      randomChar(int seed);
-
+  randomChar(int seed);
+  
+  /*
+   *
+   */
   static void
-      distractText (cairo_t *cr, int width, int height, char *font, 
-              int seed); 
+  distractText (cairo_t *cr, int width, int height, char *font, 
+		int seed); 
+  
+  /*
+   * Draws a circle along an arbitrary edge of the surface
+   * 
+   * cr - cairo context
+   * width - surface width
+   * height - surface height
+   */
+  static void
+  city_point(cairo_t *cr, int width, int height);
 
 };
 

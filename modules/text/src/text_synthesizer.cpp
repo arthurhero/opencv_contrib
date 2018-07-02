@@ -666,8 +666,8 @@ namespace cv{
                     pango_layout_set_font_description (layout, desc);
 
                     int spacing_ = (int)(1024*spacing);
-
-                    std::ostringstream stm;
+		    
+		    std::ostringstream stm;
                     stm << spacing_;
                     string mark = "<span letter_spacing='"+stm.str()+"'>"+caption+"</span>";
                     cout << "mark " << mark << endl;

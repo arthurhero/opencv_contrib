@@ -8,7 +8,7 @@
 // SEE text_transformations.hpp FOR ALL DOCUMENTATION
 
 
-///////////////////////////////// from behdad's cairotwisted.c (required functions)
+///////////////////////////// from behdad's cairotwisted.c (required functions)
 
 double
 TextTransformations::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
@@ -284,7 +284,7 @@ TextTransformations::map_path_onto (cairo_t *cr, cairo_path_t *path)
   g_free (param.parametrization);
 }
 
-//////////////////////////////////////https://github.com/phuang/pango/blob/master/examples/cairotwisted.c
+////////////////////https://github.com/phuang/pango/blob/master/examples/cairotwisted.c
 
 
 void 
@@ -616,38 +616,6 @@ TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayo
 
 }
 
-/*
-void 
-TextTransformations::create_arc_path (cairo_t *cr, cairo_path_t *path, PangoLayoutLine *line, 
-				      PangoLayout *layout, double x, double y, double radius, 
-				      double width, double height, short direction,
-				      std::vector<coords> points) {
-
-  if (radius < .5*width) radius = .5*width; //verify preconditions
-
-  //draw path shape
-  points_to_arc_path(cr, points, radius, width, height, direction); 
-  
-  // Decrease tolerance, since the text going to be magnified 
-  cairo_set_tolerance (cr, .01);
-
-  path = cairo_copy_path_flat (cr);
-
-
-  cairo_new_path (cr);
-
-  line = pango_layout_get_line_readonly (layout, 0);
-
-  cairo_move_to (cr, x,y); //establish how far from/along path the text is
-  pango_cairo_layout_line_path (cr, line);
-
-  map_path_onto (cr, path);
-
-  //clean up
-  cairo_path_destroy (path);
-
-}
-*/
 
 void
 TextTransformations::create_curved_path (cairo_t *cr, cairo_path_t *path, 
@@ -802,6 +770,7 @@ TextTransformations::addBgPattern (cairo_t *cr, int width, int height, bool even
   cairo_rotate(cr, 0);
 }
 
+
 void
 TextTransformations::colorDiff (cairo_t *cr, int width, int height, int seed, 
 				double color1, double color2) {
@@ -836,8 +805,8 @@ TextTransformations::colorDiff (cairo_t *cr, int width, int height, int seed,
     
   //return to origin
   cairo_move_to (cr, 0, 0);
-
 }
+
 
 char
 TextTransformations::randomChar(int seed) {
@@ -851,6 +820,7 @@ TextTransformations::randomChar(int seed) {
   }
   return ch;
 }
+
 
 void
 TextTransformations::distractText (cairo_t *cr, int width, int height, char *font, int seed) {
@@ -908,3 +878,38 @@ TextTransformations::distractText (cairo_t *cr, int width, int height, char *fon
 }
 
 
+void
+TextTransformations::city_point(cairo_t *cr, int width, int height) {
+
+  //options for side of the surface the point origin appears on
+  enum Side { left, right, top, bottom }; // (top from user perspective)
+
+  int option = rand() % 4; // choose a Side for circle origin
+  int x,y; // circle origin coordinates
+  
+  int radius = (rand() % ((height/2)+1)) + 5; // range 5-(h/2)
+  
+  // set circle origin coords based on random choice of side
+  switch(option) {
+  case left:   // 0
+    x = -(rand() % radius);
+    y = rand() % height; 
+    break;
+  case right:  // 1
+    x = (rand() % radius) + width;
+    y = rand() % height;
+    break;
+  case top:    // 2
+    x = rand() % width;
+    y = -(rand() % radius);
+    break; 
+  case bottom: // 3
+    x = rand() % width;
+    y = (rand() % radius) + height;
+    break;
+  }
+  
+  //draw and fill the circle arc
+  cairo_arc(cr, x, y, radius, 0, 2*M_PI);
+  cairo_fill(cr);
+}
