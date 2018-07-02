@@ -32,10 +32,6 @@
 #include <pango/pangocairo.h>
 
 
-//TODO FIND apropriate
-#define CV_IMWRITE_JPEG_QUALITY 1
-#define CV_LOAD_IMAGE_COLOR 1
-
 using namespace std;
 
 namespace cv{
@@ -43,47 +39,6 @@ namespace cv{
 
         namespace {
             //Unnamed namespace with auxiliary classes and functions used for quick computation
-            template <typename T> T min_ (T v1, T v2) {
-                return (v1 < v2) * v1 + (v1 >= v2) * v2;
-            }
-
-            template <typename T> T max_(T v1, T v2) {
-                return (v1 > v2)* v1 + (v1 <= v2) * v2;
-            }
-
-            /*
-               template <typename P,typename BL_A,typename BL> void blendRGBA(Mat& out, const Mat &in1, const Mat& in2){
-               CV_Assert (out.cols == in1.cols && out.cols == in2.cols);
-               CV_Assert (out.rows == in1.rows && out.rows == in2.rows);
-               CV_Assert (out.channels() == 4 && in1.channels() == 4 && in2.channels() == 4);
-               int lineWidth=out.cols * 4;
-               BL blend;
-               BL_A blendA;
-               for(int y = 0; y < out.rows; y++){
-               const P* in1B = in1.ptr<P> (y) ;
-               const P* in1G = in1.ptr<P> (y) + 1;
-               const P* in1R = in1.ptr<P> (y) + 2;
-               const P* in1A = in1.ptr<P> (y) + 3;
-
-               const P* in2B = in2.ptr<P> (y);
-               const P* in2G = in2.ptr<P> (y) + 1;
-               const P* in2R = in2.ptr<P> (y) + 2;
-               const P* in2A = in2.ptr<P> (y) + 3;
-
-               P* outB = out.ptr<P> (y);
-               P* outG = out.ptr<P> (y) + 1;
-               P* outR = out.ptr<P> (y) + 2;
-               P* outA = out.ptr<P> (y) + 3;
-
-               for(int x = 0; x < lineWidth; x += 4){
-               outB[x] = blend(in1B + x, in1A + x, in2B + x, in2A + x);
-               outG[x] = blend(in1G + x, in1A + x, in2G + x, in2A + x);
-               outR[x] = blend(in1R + x, in1A + x, in2R + x, in2A + x);
-               outA[x] = blendA(in1A[x], in2A[x]);
-               }
-               }
-               }
-             */
             static void MatToCairo(Mat &MC3,cairo_surface_t *surface)
             {
                 Mat MC4 = Mat(cairo_image_surface_get_height(surface),cairo_image_surface_get_width(surface),CV_8UC4,cairo_image_surface_get_data(surface));
@@ -129,51 +84,6 @@ namespace cv{
                 cv::merge(Imgs2,MC3);
             }
 
-            /*
-             * Make a stretching filter over the active mask.
-             * Be sure to deactivate it with cairo_identity_matrix 
-             * when you no longer wish to stretch all drawing.
-             * 
-             * cr - cairo context
-             * xfactor - the stretch factor in x direction
-             * yfactor - the stretch factor in y direction
-             */
-            static void activate_stretch_filter (cairo_t *cr, double xfactor, double yfactor) {
-
-                //set transformation matrix
-                cairo_matrix_t matrix;
-                cairo_matrix_init(&matrix, xfactor, 0, 0, yfactor, 0, 0);
-                //  stretching horizontal/vertical matrix (or both if desired)
-                //  x 0
-                //  0 y
-                cairo_transform(cr, &matrix);
-            }
-
-            void addNoise (cairo_surface_t *text, int degree){
-                RNG rng_;//Randon number generator used for all distributions
-                int height = cairo_image_surface_get_height(text);
-                int width = cairo_image_surface_get_width(text);
-                int prob = degree * 5; //0~50
-                unsigned char *data;
-                data = cairo_image_surface_get_data(text);
-
-                cairo_surface_flush(text);
-                unsigned char tmp;
-                int stride = cairo_format_stride_for_width(CAIRO_FORMAT_ARGB32, width);
-                for (int r=0;r<height;r++) {
-                    for (int c=0;c<stride;c+=4) {
-                        if (rng_.next()%100<prob && data[(r*stride+c)+3]!=0){
-                            tmp = rng_.next()%56; 
-                            data[r*stride+c]+=tmp;
-                            data[r*stride+c+1]+=tmp;
-                            data[r*stride+c+2]+=tmp;
-                        }
-                    }
-                }
-                cairo_surface_mark_dirty(text);
-                cairo_surface_flush(text);
-            }
-
             void addSpots (cairo_surface_t *text, int degree, bool trans, int color){
                 RNG rng_;//Randon number generator used for all distributions
                 int height = cairo_image_surface_get_height(text);
@@ -207,7 +117,7 @@ namespace cv{
                     for (int r=0;r<height;r++) {
                         for (int c=0;c<stride;c++) {
                             double dis = pow(pow((double)(r-y),2)+pow((double)(c-x),2),0.5);
-                            prob=100-(100/(1+100*pow(M_E,-(dis-rad))));
+                            prob=100-(100/(1+100*exp(-(dis-rad))));
                             if (rng_.next()%100 < prob) {
                                 data[r*stride+c]=255;
                             }
@@ -252,7 +162,6 @@ namespace cv{
 
         }//unnamed namespace
 
-        void blendWeighted(Mat& out,Mat& top,Mat& bottom,float topMask,float bottomMask);
         void blendWeighted(Mat& out,Mat& top,Mat& bottom,float topMask,float bottomMask){
             if(out.channels( )==3 && top.channels( )==3 && bottom.channels( )==3 ){
                 for(int y=0;y<out.rows;y++){
@@ -291,7 +200,6 @@ namespace cv{
             CV_Error(Error::StsError,"Images must all be either CV_32FC1 CV_32FC32");
         }
 
-        void blendWeighted(Mat& out,Mat& top,Mat& bottom,Mat& topMask_,Mat& bottomMask_);
         void blendWeighted(Mat& out,Mat& top,Mat& bottom,Mat& topMask_,Mat& bottomMask_){
             for(int y=0;y<out.rows;y++){
                 float* outR=out.ptr<float>(y);
@@ -318,7 +226,6 @@ namespace cv{
             }
         }
 
-        void blendOverlay(Mat& out,Mat& top,Mat& bottom,Mat& topMask);
         void blendOverlay(Mat& out,Mat& top,Mat& bottom,Mat& topMask){
             for(int y=0;y<out.rows;y++){
                 float* outR=out.ptr<float>(y);
@@ -344,7 +251,6 @@ namespace cv{
             }
         }
 
-        void blendOverlay(Mat& out,Scalar topCol,Scalar bottomCol,Mat& topMask);
         void blendOverlay(Mat& out,Scalar topCol,Scalar bottomCol,Mat& topMask){
             float topR=float(topCol[0]);
             float topG=float(topCol[1]);
@@ -369,7 +275,6 @@ namespace cv{
                 }
             }
         }
-
 
         //probabilities are all accumulative
         TextSynthesizer::TextSynthesizer(int sampleHeight):
@@ -401,38 +306,43 @@ namespace cv{
                 {0.05,0.9}},
 
             //bg features
-            colordiffProb_{0.5,0.5,0,0.2},
-            //distracttextProb_{0,0,0.5,0},
-            distracttextProb_{0.2,0.5,0.8,0.5},
-            boundryProb_{0.2,0,0.3,0},
-            //colorblobProb_{0.1,0,0,0.1},
-            colorblobProb_{1,1,1,1},
-            gridProb_{0.1,0,0.3,0},
-            straightlineProb_{0.2,0.1,0.9,0.2},
-            citypointProb_{0,0,0,0.2},
-            parallelProb_{0,0.4,0,0},
-            vparallelProb_{0,0.6,0,0},
-            mountainProb_{0.1,0,0.2,0.1},
-            railroadProb_{0.2,0,0.3,0.1},
-            riverlineProb_{0.95,0,0.5,0.1}
+            bgProbs_{
+                //colordiffProb_
+                {0.5,0.5,0,0.2},
+                //distracttextProb_
+                {0.2,0.5,0.8,0.5},
+                //boundryProb_
+                {0.2,0,0.3,0},
+                //colorblobProb_
+                {1,1,1,1},
+                //straightlineProb_
+                {0.2,0.1,0.9,0.2},
+                //gridProb_
+                {0.1,0,0.3,0},
+                //citypointProb_
+                {0,0,0,0.2},
+                //parallelProb_
+                {0,0.4,0,0},
+                //vparallelProb_
+                {0,0.6,0,0},
+                //mountainProb_
+                {0.1,0,0.2,0.1},
+                //railroadProb_
+                {0.2,0,0.3,0.1},
+                //riverlineProb_
+                {0.95,0,0.5,0.1}
+            },
+            maxnum_{3,2,5,2}
         {
-            resWidth_=1000;
-
 
             //independent properties
             missingProbability_=0.2;
-            noiseProbability_=0.3;
             rotatedProbability_=0.3;
 
 
             finalBlendAlpha_=0.9;
             finalBlendProb_=0;
 
-            //max num of bg features each bg4 type can have
-            flow_n=3;
-            water_n=2;
-            bigland_n=5;
-            smallland_n=2;
 
         }
 
@@ -503,6 +413,7 @@ namespace cv{
                 }
 
                 void generateFont(char *ret, int fontsize){
+                    cout << "before for" << endl;
                     CV_Assert(this->availableFonts_.size());
                     CV_Assert(this->blockyFonts_.size());
                     CV_Assert(this->regularFonts_.size());
@@ -510,39 +421,29 @@ namespace cv{
                     double *fontProb;
                     int font_prob = this->rng_.next()%10000;
 
-                    if (this->bgType_==Water) {
-                        fontProb=this->fontProbability_[0];
-                    } else if (this->bgType_==Bigland) {
-                        fontProb=this->fontProbability_[1];
-                    } else {
-                        fontProb=this->fontProbability_[2];
+                    int bgIndex=static_cast<int>(this->bgType_);
+                    fontProb=this->fontProbability_[bgIndex];
+
+
+                    for (int i=0;i<3;i++) {
+                        if(font_prob < 10000*fontProb[i]){
+                            cout << "font index " << i << endl;
+                            int listsize = this->fonts_[i]->size();
+                            cout << "list size " << listsize << endl;
+                            CV_Assert(listsize);
+                            const char *fnt = this->fonts_[i]->at(rng_.next() % listsize).c_str();
+                            strcpy(ret,fnt);
+                            break;
+                        }
+
                     }
 
-                    if(font_prob < 10000*fontProb[0]){
-                        const char *fnt = this->blockyFonts_[rng_.next() % this->blockyFonts_.size()].c_str();
-                        strcpy(ret,fnt);
-                    } else if(font_prob < 10000*fontProb[1]){
-                        const char *fnt = this->regularFonts_[rng_.next() % this->regularFonts_.size()].c_str();
-                        strcpy(ret,fnt);
-                    } else {
-                        const char *fnt = this->cursiveFonts_[rng_.next() % this->cursiveFonts_.size()].c_str();
-                        strcpy(ret,fnt);
-                    }
+                    cout << "after for" << endl;
 
                     //Italic
                     int italic_prob = this->rng_.next()%10000;
-                    if (this->bgType_==Water) {
-                        if(italic_prob < 10000*this->italicProbability_[0]){
-                            strcat(ret," Italic");
-                        }
-                    } else if (this->bgType_==Bigland) {
-                        if(italic_prob < 10000*this->italicProbability_[1]){
-                            strcat(ret," Italic");
-                        }
-                    } else {
-                        if(italic_prob < 10000*this->italicProbability_[2]){
-                            strcat(ret," Italic");
-                        }
+                    if(italic_prob < 10000*this->italicProbability_[bgIndex]){
+                        strcat(ret," Italic");
                     }
                     strcat(ret," ");
                     std::ostringstream stm;
@@ -561,73 +462,59 @@ namespace cv{
                     }
 
 
-                    int spacing_prob = this->rng_.next()%10000;
-                    int stretch_prob = this->rng_.next()%10000;
+                    int bgIndex=static_cast<int>(this->bgType_);
 
-                    double *spacingProb;
-                    double *stretchProb;
-                    double curvingProb;
-                    if (this->bgType_==Water) {
-                        spacingProb=this->spacingProbability_[0];
-                        stretchProb=this->stretchProbability_[0];
-                        curvingProb=this->curvingProbability_[0];
-                    }
-                    else if (this->bgType_==Bigland) {
-                        spacingProb=this->spacingProbability_[1];
-                        stretchProb=this->stretchProbability_[1];
-                        curvingProb=this->curvingProbability_[1];
-                    } else {
-                        spacingProb=this->spacingProbability_[2];
-                        stretchProb=this->stretchProbability_[2];
-                        curvingProb=this->curvingProbability_[2];
-                    } 
-
+                    double curvingProb=this->curvingProbability_[bgIndex];
+                    double *spacingProb=this->spacingProbability_[bgIndex];
+                    double *stretchProb=this->stretchProbability_[bgIndex];
 
                     bool curved = false;
                     if(this->rndProbUnder(curvingProb)){
                         curved = true;
                     }
 
-
                     //get spacing degree
-                    double spacing_deg;
-                    if (spacing_prob<10000*spacingProb[0]){
-                        spacing_deg=-0.5;
-                    } else if (spacing_prob<10000*spacingProb[1]){
-                        spacing_deg=-0.8;
-                    } else if (spacing_prob<10000*spacingProb[2]){
-                        spacing_deg=0;
-                    } else if (spacing_prob<10000*spacingProb[3]){
-                        spacing_deg=1;
-                    } else {
-                        spacing_deg=2;
+                    int spacing_prob = this->rng_.next()%10000;
+                    double spacing_deg=-0.6+exp(4)/5;
+                    for (int i=0;i<4;i++) {
+                        if (spacing_prob<spacingProb[i]*10000) {
+                            spacing_deg=-0.6+exp((double)i)/5;
+                            break;
+                        }
                     }
+
                     cout << "spacing deg " << spacing_deg << endl;
 
                     //get stretch degree
-                    double stretch_deg;
-                    if (stretch_prob<10000*stretchProb[0]){
-                        stretch_deg=0.7;
-                    } else if (stretch_prob<10000*stretchProb[1]){
-                        stretch_deg=0.8;
-                    } else if (stretch_prob<10000*stretchProb[2]){
-                        stretch_deg=1;
-                    } else if (stretch_prob<10000*stretchProb[3]){
-                        stretch_deg=1.2;
-                    } else{
-                        stretch_deg=1.5;
+                    int stretch_prob = this->rng_.next()%10000;
+                    double stretch_deg=-0.5+exp(4/4.0);
+                    for (int i=0;i<4;i++) {
+                        if (stretch_prob<stretchProb[i]*10000) {
+                            stretch_deg=-0.5+exp(i/4.0);
+                            break;
+                        }
                     }
+
                     cout << "stretch deg " << stretch_deg << endl;
 
                     double fontsize = (double)this->resHeight_/4*3;
                     double spacing = fontsize/20*spacing_deg;
 
+                    int maxpad=this->resHeight_/10;
+                    int x_pad = this->rng_.next()%maxpad-maxpad/2;
+                    int y_pad = this->rng_.next()%maxpad-maxpad/2;
+                    cout << "pad " << x_pad << " " << y_pad << endl;
+
+                    double scale = (this->rng_.next()%5)/20.0+0.9;
+                    cout << "scale " << scale << endl;
+
                     //Start to draw a pango img
                     cairo_surface_t *surface;
                     cairo_t *cr;
 
-                    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 1000, this->resHeight_);
+                    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 2000, this->resHeight_);
                     cr = cairo_create (surface);
+
 
                     char font[50];
                     cout << "generate font" << endl;
@@ -645,15 +532,8 @@ namespace cv{
                     desc = pango_font_description_from_string(font);
 
                     //Weight
-                    double *weightProb;
+                    double *weightProb=this->weightProbability_[bgIndex];
                     int weight_prob = this->rng_.next()%10000;
-                    if (this->bgType_==Water) {
-                        weightProb=this->weightProbability_[0];
-                    } else if (this->bgType_==Bigland) {
-                        weightProb=this->weightProbability_[1];
-                    } else {
-                        weightProb=this->weightProbability_[2];
-                    }
 
                     if(weight_prob < 10000*weightProb[0]){
                         pango_font_description_set_weight(desc, PANGO_WEIGHT_LIGHT);
@@ -690,7 +570,7 @@ namespace cv{
 
                     int cur_size = pango_font_description_get_size(desc);
                     cout << "cur size " << cur_size << endl;
-                    int size = (int)((double)cur_size/ink_h*this->resHeight_/10*9);
+                    int size = (int)((double)cur_size/ink_h*this->resHeight_);
                     cout << "size " << size << endl;
                     pango_font_description_set_size(desc, size);
                     pango_layout_set_font_description (layout, desc);
@@ -709,12 +589,10 @@ namespace cv{
                     cur_size = pango_font_description_get_size(desc);
                     cout << "new cur size " << cur_size << endl;
 
-                    double textWidth, textHeight;
                     ink_w=stretch_deg*(ink_w);
                     int patchWidth = (int)ink_w;
                     cout << "patch width " << patchWidth << endl;
 
-                    activate_stretch_filter(cr, stretch_deg, 1);
                     cout << "after stretch" << endl;
                     if (this->rotatedAngle_!=0) {
                         cout << "rotated angle" << this->rotatedAngle_ << endl;
@@ -722,15 +600,16 @@ namespace cv{
 
                         double sine = abs(sin(this->rotatedAngle_));
                         double cosine = abs(cos(this->rotatedAngle_));
-                        double tangent = abs(tan(this->rotatedAngle_));
-                        double cotan = 1/tangent;
 
                         double ratio = ink_h/(double)ink_w;
-                        textWidth=this->resHeight_/(cosine*ratio+sine);
+                        double textWidth, textHeight;
+
+                        textWidth=(this->resHeight_/(cosine*ratio+sine));
                         cout << "new width " << textWidth << endl;
-                        textHeight = ratio*textWidth;
+                        textHeight = (ratio*textWidth);
                         cout << "new height " << textHeight << endl;
-                        patchWidth = (int)(cosine*textWidth+sine*textHeight);
+                        patchWidth = (int)ceil(cosine*textWidth+sine*textHeight)+1;
+                        cout << "real h " << sine*textWidth+cosine*textHeight << endl;
 
                         cur_size = pango_font_description_get_size(desc);
                         size = (int)((double)cur_size/ink_h*textHeight);
@@ -738,47 +617,81 @@ namespace cv{
                         pango_font_description_set_size(desc, size);
                         pango_layout_set_font_description (layout, desc);
 
-                        int x_off=0, y_off=0;
+                        spacing_ = (int)floor((double)spacing_/ink_h*textHeight);
+
+                        std::ostringstream stm;
+                        stm << spacing_;
+                        string mark = "<span letter_spacing='"+stm.str()+"'>"+caption+"</span>";
+                        cout << "mark " << mark << endl;
+
+                        pango_layout_set_markup(layout, mark.c_str(), -1);
+
+                        double x_off=0, y_off=0;
                         if (this->rotatedAngle_<0) {
-                            x_off=-(int)(sine*sine*textWidth);
-                            y_off=(int)(cosine*sine*textWidth);
+                            x_off=-sine*sine*textWidth;
+                            y_off=cosine*sine*textWidth;
                         } else {
-                            x_off=(int)(cosine*sine*textHeight);
-                            y_off=-(int)(sine*sine*textHeight);
+                            x_off=cosine*sine*textHeight;
+                            y_off=-sine*sine*textHeight;
                         }   
                         cairo_translate (cr, x_off, y_off);
 
+                        cairo_scale(cr, stretch_deg, 1);
+
                         double height_ratio=textHeight/ink_h;
-                        ink_y=ink_y*height_ratio+1;
-                        ink_x=ink_x*height_ratio+1;
-                        cairo_translate (cr, -ink_x, -ink_y);
+                        y_off=(ink_y*height_ratio);
+                        x_off=(ink_x*height_ratio);
+                        cairo_translate (cr, -x_off, -y_off);
                         pango_cairo_show_layout (cr, layout);
-                    } else if (curved && len>1) {
+                    } else if (curved && patchWidth > 10*this->resHeight_ && spacing_deg>=10) {
+                        cairo_scale(cr, stretch_deg, 1);
                         cairo_path_t *path;
                         PangoLayoutLine *line;
-                        cur_size = pango_font_description_get_size(desc);
-                        size = (int)((double)cur_size/10*8);
-                        cout << "curved size " << size << endl;
-                        pango_font_description_set_size(desc, size);
-                        pango_layout_set_font_description (layout, desc);
                         cout << "before tt" << endl;
-                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
-                        /*
-                        if (this->rng_.next()%2==0) {
-<<<<<<< HEAD
-                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,4,time(NULL));
-                        } else {
-                            tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,-ink_x/10.0*8+this->resHeight_/5.0,-ink_y/10.0*8,3,time(NULL));
-=======
-                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,4,time(NULL));
-                        } else {
-                            pc.create_curved_path(cr,path,line,layout,patchWidth,this->resHeight_,-ink_x/10*8+this->resHeight_/5,-ink_y/10*8,3,time(NULL));
->>>>>>> pull_branch
-                        }
-                        */
+                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,this->rng_.next()%3+3,this->rng_.next());
+
                         cout << "after tt" << endl;
-                        cairo_fill_preserve (cr);
+                        double x1,x2,y1,y2;
+                        cairo_path_extents(cr,&x1,&y1,&x2,&y2);
+                        cout << "x1 " << x1 << endl;
+                        cout << "y1 " << y1 << endl;
+                        cout << "x2 " << x2 << endl;
+                        cout << "y2 " << y2 << endl;
+
+                        cairo_path_t *path_n=cairo_copy_path(cr);
+                        cairo_new_path(cr);
+                        cairo_path_data_t *path_data_n;
+                        fl.manual_translate(cr, path_n, path_data_n, -x1, -y1);
+
+                        cairo_path_extents(cr,&x1,&y1,&x2,&y2);
+                        cout << "x1 " << x1 << endl;
+                        cout << "y1 " << y1 << endl;
+                        cout << "x2 " << x2 << endl;
+                        cout << "y2 " << y2 << endl;
+
+                        path_n=cairo_copy_path(cr);
+                        cairo_new_path(cr);
+
+                        cairo_surface_t *surface_c;
+                        cairo_t *cr_c;
+
+                        surface_c = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, (int)ceil(x2-x1), (int)ceil(y2-y1));
+                        cr_c = cairo_create (surface_c);
+                        cairo_new_path(cr_c);
+                        cairo_append_path(cr_c,path_n);
+                        cairo_fill(cr_c);
+
+                        double ratio = this->resHeight_/(y2-y1);
+                        cout << "ratio " << ratio << endl;
+                        cairo_scale(cr,ratio,ratio);
+                        patchWidth=(int)(ceil((x2-x1)*ratio)*stretch_deg);
+                        cairo_set_source_surface(cr, surface_c, 0, 0);
+                        cairo_rectangle(cr, 0, 0, x2-x1, y2-y1);
+                        cairo_fill(cr);
+                        cairo_destroy (cr_c);
+                        cairo_surface_destroy (surface_c);
                     } else {
+                        cairo_scale(cr, stretch_deg, 1);
                         cairo_translate (cr, -ink_x, -ink_y);
                         pango_cairo_show_layout (cr, layout);
                     }
@@ -792,14 +705,6 @@ namespace cv{
 
                     cairo_identity_matrix(cr);
 
-                    //draw distracting text
-                    if (distract) {
-                        char font2[50];
-                        int shrink = this->rng_.next()%3+2;
-                        this->generateFont(font2,size/1024/shrink);
-                        tt.distractText(cr, patchWidth, this->resHeight_, font2, time(NULL));
-                    }
-
                     cout << "destroy cr" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr) << endl;
                     cairo_destroy (cr);
@@ -810,9 +715,27 @@ namespace cv{
                     surface_n = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, patchWidth, this->resHeight_);
                     cr_n = cairo_create (surface_n);
 
+                    //apply arbitrary padding and scaling
+                    cairo_translate (cr_n, x_pad, y_pad);
+
+                    cairo_translate (cr_n, patchWidth/2, this->resHeight_/2);
+                    cairo_scale(cr_n, scale, scale);
+                    cairo_translate (cr_n, -patchWidth/2, -this->resHeight_/2);
+
                     cairo_set_source_surface(cr_n, surface, 0, 0);
                     cairo_rectangle(cr_n, 0, 0, patchWidth, this->resHeight_);
                     cairo_fill(cr_n);
+
+                    cairo_identity_matrix(cr_n);
+
+                    cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
+                    //draw distracting text
+                    if (distract) {
+                        char font2[50];
+                        int shrink = this->rng_.next()%3+2;
+                        this->generateFont(font2,size/1024/shrink);
+                        tt.distractText(cr_n, patchWidth, this->resHeight_, font2, time(NULL));
+                    }
 
                     cout << "destroy cr_n" << endl;
                     cout << "ref count " << cairo_get_reference_count(cr_n) << endl;
@@ -820,11 +743,6 @@ namespace cv{
                     cout << "destroy surface" << endl;
                     cout << "ref count " << cairo_surface_get_reference_count(surface) << endl;
                     cairo_surface_destroy (surface);
-
-                    cout << "adding noise" << endl;
-                    if(this->rndProbUnder(this->noiseProbability_)){
-                        addNoise(surface_n,1);
-                    }
 
                     cout << "add spots" << endl;
                     if(this->rndProbUnder(this->missingProbability_)){
@@ -847,9 +765,58 @@ namespace cv{
                     cairo_surface_destroy (surface_n);
 
                     cout << "after destroy stuff" << endl;
-                    
+
                     textImg.copyTo(output);
                     maskImg.copyTo(outputMask);
+
+                }
+
+                void addGaussianNoise(Mat& out){
+                    double sigma = (rng_.next()%10+1)/100.0;
+
+                    Mat noise = Mat(out.rows, out.cols, CV_32F);
+                    randn(noise, 0, sigma);
+                    vector<Mat> chs;
+                    cv::split(out,chs);
+
+                    for (int i=0;i<3;i++) {
+                        chs[i]+=noise;
+                        threshold(chs[i],chs[i],1.0,1.0,THRESH_TRUNC);
+                        threshold(chs[i],chs[i],0,1.0,THRESH_TOZERO);
+                    }
+
+                    merge(chs,out);
+                }
+
+                void addGaussianBlur(Mat& out){
+                    int ker_size = rng_.next()%2*2+1;
+                    GaussianBlur(out,out,Size(ker_size,ker_size),0,0,BORDER_REFLECT_101);
+                }
+
+                void addBgBias(cairo_t *cr, int width, int height, int color){
+
+                    cairo_pattern_t *pat = cairo_pattern_create_linear(width/2,0,width/2,height);
+                    cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,height/2,width,height/2);
+                    int num = rng_.next()%5+3; 
+                    int num2 = rng_.next()%30+5; 
+                    double offset = 1.0/(num-1);
+                    for (int i=0;i<num;i++){
+                        int color1 = color + rng_.next()%200-100;
+                        color1 = min(color1, 255);
+                        double dcolor = color1/255.0;
+                        cairo_pattern_add_color_stop_rgb(pat, i*offset, dcolor,dcolor,dcolor);
+                    }
+                    for (int i=0;i<num2;i++){
+                        int color2 = color + rng_.next()%200-100;
+                        color2 = min(color2, 255);
+                        double dcolor = color2/255.0;
+                        cairo_pattern_add_color_stop_rgb(pat2, i*offset, dcolor,dcolor,dcolor);
+                    }
+
+                    cairo_set_source(cr, pat);
+                    cairo_paint_with_alpha(cr,0.3);
+                    cairo_set_source(cr, pat2);
+                    cairo_paint_with_alpha(cr,0.3);
 
                 }
 
@@ -859,6 +826,7 @@ namespace cv{
                     cairo_t *cr;
                     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, this->resHeight_);
                     cr = cairo_create (surface);
+
                     cairo_set_source_rgb(cr, bg_color/255.0,bg_color/255.0,bg_color/255.0);
                     cairo_paint (cr);
 
@@ -870,6 +838,10 @@ namespace cv{
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
                         addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
                     }
+
+                    //add bg bias field
+                    addBgBias(cr, width, this->resHeight_, bg_color);
+
                     if (find(features.begin(), features.end(), Parallel)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
@@ -886,17 +858,32 @@ namespace cv{
                         tt.addBgPattern(cr, width, this->resHeight_, true, true, false, time(NULL));
                     }
                     if (find(features.begin(), features.end(), Railroad)!= features.end()) {
-                        fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Boundry)!= features.end()) {
-                        fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Straight)!= features.end()) {
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_);
-                        fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
                     if (find(features.begin(), features.end(), Riverline)!= features.end()) {
-                        fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_);
+                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        int line_num = this->rng_.next()%2+1;
+                        for (int i=0;i<line_num;i++) {
+                            fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                        }
                     }
 
                     Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
@@ -909,38 +896,28 @@ namespace cv{
                 }
 
                 RNG rng_;//Randon number generator used for all distributions
-                int txtPad_;
                 std::vector<String> blockyFonts_;
                 std::vector<String> regularFonts_;
                 std::vector<String> cursiveFonts_;
                 std::vector<String> availableFonts_;
+
+                std::shared_ptr<std::vector<String> > fonts_[3];
                 std::vector<String> sampleCaptions_;
 
             public:
                 TextSynthesizerImpl(
                         int sampleHeight = 50,
                         uint64 rndState = 0)
-                    : TextSynthesizer(sampleHeight)
-                      , rng_(rndState != 0 ? rndState:std::time(NULL))
-                          , txtPad_(1) {
+                    : TextSynthesizer(sampleHeight),
+                    rng_(rndState != 0 ? rndState:std::time(NULL)),
+                    fonts_{std::shared_ptr<std::vector<String> >(&(this->blockyFonts_)),
+                          std::shared_ptr<std::vector<String> >(&(this->regularFonts_)),
+                          std::shared_ptr<std::vector<String> >(&(this->cursiveFonts_))}{
                               namedWindow("__w");
                               waitKey(1);
                               destroyWindow("__w");
-
                               this->updateFontNameList(this->availableFonts_);
                           }
-
-                void getRandomSeed (OutputArray res) const {
-                    Mat tmpMat(1,8,CV_8UC1);
-                    tmpMat.ptr<uint64>(0)[0] = this->rng_.state;
-                    tmpMat.copyTo(res);
-                }
-
-                void setRandomSeed (Mat state) {
-                    CV_Assert (state.rows == 1 && state.cols == 8);
-                    CV_Assert (state.depth() == CV_8U && state.channels() == 1);
-                    this->rng_.state=state.ptr<uint64>(0)[0];
-                }
 
                 void generateTxtSample(CV_OUT String &caption, CV_OUT Mat& sample,CV_OUT Mat& sampleMask, int text_color, bool distract){
                     if(sampleCaptions_.size()!=0){
@@ -961,28 +938,9 @@ namespace cv{
                 }
 
                 void generateBgFeatures(vector<BGFeature> &bgFeatures){
-                    int maxnum=0;
-                    int index=0;
-                    switch (this->bgType4_) {
-                        case (Flow):
-                            maxnum=this->flow_n;
-                            index=0;
-                            break;
-                        case (Waterbody):
-                            maxnum=this->water_n;
-                            index=1;
-                            break;
-                        case (Big):
-                            maxnum=this->bigland_n;
-                            index=2;
-                            break;
-                        case (Small):
-                            maxnum=this->smallland_n;
-                            index=3;
-                            break;
-                        default:
-                            break;
-                    }
+                    int index=static_cast<int>(this->bgType4_);
+                    int maxnum=this->maxnum_[index];
+
                     std::vector<BGFeature> allFeatures={Colordiff, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
                     for (int i=0;i<maxnum;i++){
                         bool flag = true;
@@ -990,75 +948,16 @@ namespace cv{
                             int j = this->rng_.next()%allFeatures.size();
                             BGFeature cur = allFeatures[j];
                             allFeatures.erase(allFeatures.begin()+j);
-                            if (allFeatures[j]==Vparallel && find(bgFeatures.begin(), bgFeatures.end(), Parallel)!= bgFeatures.end()) continue;
-                            if (allFeatures[j]==Parallel && find(bgFeatures.begin(), bgFeatures.end(), Vparallel)!= bgFeatures.end()) continue;
-                            if (allFeatures[j]==Colordiff && find(bgFeatures.begin(), bgFeatures.end(), Colorblob)!= bgFeatures.end()) continue;
-                            if (allFeatures[j]==Colorblob && find(bgFeatures.begin(), bgFeatures.end(), Colordiff)!= bgFeatures.end()) continue;
+                            if (cur==Vparallel && find(bgFeatures.begin(), bgFeatures.end(), Parallel)!= bgFeatures.end()) continue;
+                            if (cur==Parallel && find(bgFeatures.begin(), bgFeatures.end(), Vparallel)!= bgFeatures.end()) continue;
+                            if (cur==Colordiff && find(bgFeatures.begin(), bgFeatures.end(), Colorblob)!= bgFeatures.end()) continue;
+                            if (cur==Colorblob && find(bgFeatures.begin(), bgFeatures.end(), Colordiff)!= bgFeatures.end()) continue;
 
                             flag=false;
-                            switch (cur) {
-                                case (Colordiff):
-                                    if(this->rndProbUnder(this->colordiffProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Distracttext):
-                                    if(this->rndProbUnder(this->distracttextProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Boundry):
-                                    if(this->rndProbUnder(this->boundryProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Colorblob):
-                                    if(this->rndProbUnder(this->colorblobProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Straight):
-                                    if(this->rndProbUnder(this->straightlineProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Grid):
-                                    if(this->rndProbUnder(this->gridProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Citypoint):
-                                    if(this->rndProbUnder(this->citypointProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Parallel):
-                                    if(this->rndProbUnder(this->parallelProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Vparallel):
-                                    if(this->rndProbUnder(this->vparallelProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Mountain):
-                                    if(this->rndProbUnder(this->mountainProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Railroad):
-                                    if(this->rndProbUnder(this->railroadProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                case (Riverline):
-                                    if(this->rndProbUnder(this->riverlineProb_[index])){
-                                        bgFeatures.push_back(cur);
-                                    }
-                                    break;
-                                default:
-                                    break;
+
+                            int curIndex=static_cast<int>(cur);
+                            if(this->rndProbUnder(this->bgProbs_[curIndex][index])){
+                                bgFeatures.push_back(cur);
                             }
                         }
                     }
@@ -1125,6 +1024,9 @@ namespace cv{
                     if(this->rndProbUnder(this->finalBlendProb_)){
                         blendWeighted(sample,sample,bgResized,1-blendAlpha,blendAlpha);
                     }
+
+                    addGaussianNoise(sample);
+                    addGaussianBlur(sample);
                 }
 
                 std::vector<String> listAvailableFonts() const {

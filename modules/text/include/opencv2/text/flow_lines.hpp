@@ -104,6 +104,9 @@ private: //----------------------- PRIVATE METHODS --------------------------
 
 public: //----------------------- PUBLIC METHODS --------------------------
 
+  static void
+      manual_translate(cairo_t *cr, cairo_path_t *path, cairo_path_data_t *data, double xtrans, double ytrans);
+
   /* IMPERFECT, CURVED VERTICAL LINES TEND TO APPEAR ON RIGHT
    * Draws a line with random placement that has the characteristics
    * specified by the boolean parameters
@@ -121,8 +124,8 @@ public: //----------------------- PUBLIC METHODS --------------------------
    * height - the height of the layout in pixels
    */
   static void
-  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved,
-	   bool doubleline, bool horizontal, int seed, int width, int height);
+  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int seed, int width, int height, double color);
+
 
 };
 

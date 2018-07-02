@@ -374,7 +374,7 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
   double x = start.first / 100, y = start.second, u = end.first / 100, w = end.second;
   double a, b, c, d;
 
-  c = 10, d = -10;
+  c = rand()%11-5, d = rand()%11-5;
 
   if (x == u) return;
   else if (x == 0) {
@@ -390,10 +390,12 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
   
   double coeff[4] = {a,b,c,d};
 
+  cout << "a b c d " << a << " " << b << " " << c << " " << d << endl;
+
   double x1 = (2.0/3)*x + (1.0/3)*u;
   double x2 = (1.0/3)*x + (2.0/3)*u;
   double y1 = coeff[0] + coeff[1]*x1 + coeff[2]*pow(x1,2) + coeff[3]*pow(x1,3);
-  double y2 = coeff[0] + coeff[1]*x2 + coeff[2]*pow(x2,2) + coeff[3]*pow(x2,3);
+  double y2 = coeff[-1] + coeff[1]*x2 + coeff[2]*pow(x2,2) + coeff[3]*pow(x2,3);
 
   coords f1 = std::make_pair(x1*100,y1); 
   coords f2 = std::make_pair(x2*100,y2);
@@ -572,10 +574,11 @@ TextTransformations::make_points_wave(double width, double height, int num_point
     //x variance of +- 1/8 (width/num_points - 1)
     x_variance = (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))))
       - (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))));
-  
-    x = x_variance + ((width / (num_points - 1)) * i);;
+
+    //cout << "x" << endl;
+    x = x_variance + ((width / (num_points - 1)) * i);
     y = height - y_variance; //ensure points stay above the bottom of the canvas
-   
+
     coords new_point(x,y);
     points.push_back(new_point);
   }

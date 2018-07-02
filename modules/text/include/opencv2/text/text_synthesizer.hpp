@@ -63,15 +63,14 @@ namespace cv
          * <https://github.com/Itseez/opencv_contrib/blob/master/modules/text/samples/text_synthesiser.py>
          */
 
-        enum BGType {Water, Bigland, Smallland};
-        enum BGType4 {Flow, Waterbody, Big, Small};
-        enum BGFeature {Colordiff, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
+        enum BGType {Water=0, Bigland, Smallland};
+        enum BGType4 {Flow=0, Waterbody, Big, Small};
+        enum BGFeature {Colordiff=0, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
 
         class CV_EXPORTS_W TextSynthesizer{
 
             protected:
                 int resHeight_;
-                int resWidth_;
 
                 double bgProbability_[2];
                 BGType bgType_;
@@ -90,126 +89,22 @@ namespace cv
 
                 //independent text properties
                 double missingProbability_;
-                double noiseProbability_;
                 double rotatedProbability_;
                 double rotatedAngle_;
-
-                //bg features
-                double colordiffProb_[4];
-                double distracttextProb_[4];
-                double boundryProb_[4];
-                double colorblobProb_[4];
-                double gridProb_[4];
-                double straightlineProb_[4];
-                double citypointProb_[4];
-                double parallelProb_[4];
-                double vparallelProb_[4];
-                double mountainProb_[4];
-                double railroadProb_[4];
-                double riverlineProb_[4];
-
 
                 double finalBlendAlpha_;
                 double finalBlendProb_;
 
+                //bg features
+                double bgProbs_[12][4];
+
                 //max num of bg features each bg4 type can have
-                int flow_n;
-                int water_n;
-                int bigland_n;
-                int smallland_n;
+                int maxnum_[4];
 
 
                 TextSynthesizer(int sampleHeight);
-                //TextSynthesizer(int maxSampleWidth,int sampleHeight);
 
             public:
-                /*
-                CV_WRAP int  getSampleHeight () const {return resHeight_;}
-                CV_WRAP double*  getBgProbability () const {return bgProbability_;}
-                CV_WRAP double*  getStretchProbability () const {return stretchProbability_;}
-                CV_WRAP double*  getSpacingProbability () const {return spacingProbability_;}
-                CV_WRAP double  getCurvingProbability () const {return curvingProbability_;}
-                CV_WRAP double getItalicProbability () const {return italicProbability_;}
-                CV_WRAP double* getWeightProbability () const {return weightProbability_;}
-                CV_WRAP double* getFontProbability () const {return fontProbability_;}
-                CV_WRAP double getMissingProbability () const {return missingProbability_;}
-                CV_WRAP double getRotatedProbability () const {return rotatedProbability_;}
-
-                */
-                /**
-                 * @param v the probabilities for each category of the background the text will have
-                 */
-                /*
-                CV_WRAP void setBgProbability (double *v) {
-                    for (int i=0;i<3;i++) {
-                        CV_Assert(v[i] >= 0 && v[i] <= 1);
-                        bgProbability_[i] = v[i];
-                    }
-                }
-                */
-                /**
-                 * @param v the probabillities for each degree of stretchiness the text will have
-                 */
-                /*
-                CV_WRAP void setStretchProbability (double *v) {
-                    for (int i=0;i<5;i++) {
-                        CV_Assert(v[i] >= 0 && v[i] <= 1);
-                        stretchProbability_[i] = v[i];
-                    }
-                }
-*/
-                /**
-                 * @param v the probabillities for each degree of spacing the text will have
-                 */
-  /*
-                CV_WRAP void setSpacingProbability (double *v) {
-                    for (int i=0;i<5;i++) {
-                        CV_Assert(v[i] >= 0 && v[i] <= 1);
-                        spacingProbability_[i] = v[i];
-                    }
-                }
-*/
-                /**
-                 * @param v the probabillity the text will be curved
-                 */
-  //              CV_WRAP void setCurvingProbability (double v) {CV_Assert(v >= 0 && v <= 1); curvingProbability_ = v;}
-
-                /**
-                 * @param v the probabillity the text will be generated with italic font instead of regular
-                 */
-    //            CV_WRAP void setItalicProbability (double v) {CV_Assert(v >= 0 && v <= 1); italicProbability_ = v;}
-
-                /**
-                 * @param v the probabillities for each degree of boldness the text will have
-                 */
-      /*
-                CV_WRAP void setWeightProbability (double *v) {
-                    for (int i=0;i<3;i++) {
-                        CV_Assert(v[i] >= 0 && v[i] <= 1);
-                        weightProbability_[i] = v[i];
-                    }
-                }
-*/
-                /**
-                 * @param v the probabillities for each category of font the text will have
-                 */
-  /*
-                CV_WRAP void setFontProbability (double *v) {
-                    for (int i=0;i<3;i++) {
-                        CV_Assert(v[i] >= 0 && v[i] <= 1);
-                        fontProbability_[i] = v[i];
-                    }
-                }
-*/
-                /**
-                 * @param v the probabillity the text will have missing spots
-                 */
-  //              CV_WRAP void setMissingProbability (double v) {CV_Assert(v >= 0 && v <= 1); missingProbability_ = v;}
-
-                /**
-                 * @param v the probabillity the text will be rotated
-                 */
-    //            CV_WRAP void setRotatedProbability (double v) {CV_Assert(v >= 0 && v <= 1); rotatedProbability_ = v;}
 
                 /** @brief adds ttf fonts to the Font Database system
                  *
@@ -271,38 +166,6 @@ namespace cv
                  */
                 CV_WRAP virtual void generateSample (CV_OUT String &caption, CV_OUT Mat& sample) = 0;
 
-                /** @brief returns the name of the script beeing used
-                 *
-                 * @return a string with the name of the script
-                 */
-                //CV_WRAP virtual String getScriptName () = 0;
-
-                /** @brief returns the random seed used by the synthesizer
-                 *
-                 * @return a matrix containing a 1 x 8 uint8 matrix containing the state of
-                 * the random seed.
-                 */
-                CV_WRAP virtual void getRandomSeed (OutputArray res) const = 0;
-
-                /** @brief stets the random seed used by the synthesizer
-                 *
-                 * @param state a 1 x 8 matrix of uint8 containing the random state as
-                 * returned by getRandomSeed();
-                 */
-                CV_WRAP virtual void setRandomSeed (Mat state) = 0;
-
-                /** @brief public constructor for a syntheciser
-                 *
-                 * This constructor assigns only imutable properties of the syntheciser.
-                 *
-                 * @param sampleHeight the height of final samples in pixels
-                 *
-                 * @param maxWidth the maximum width of a sample. Any text requiring more
-                 * width to be rendered will be ignored.
-                 *
-                 * @param script an enumaration which is used to constrain the available fonts
-                 * to the ones beeing able to render strings in that script.
-                 */
                 CV_WRAP static Ptr<TextSynthesizer> create (int sampleHeight = 50);
 
                 virtual ~TextSynthesizer () {}

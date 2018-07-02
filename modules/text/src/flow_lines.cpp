@@ -24,21 +24,20 @@ FlowLines::make_dash_pattern(double * pattern, int len) {
 void
 FlowLines::draw_boundry(cairo_t *cr, double linewidth, double og_col) {
 
-  //set border line gray-scale color (keep it lighter than original)
-  double color = .3 + ((rand() % 50) / 100.0); 
-  cairo_set_source_rgb(cr, color, color, color);
-  cairo_set_line_width(cr, 3*linewidth);
-  cairo_stroke_preserve(cr); // preserve the path
+    //set border line gray-scale color (keep it lighter than original)
+    double color = .3 + ((rand() % 50) / 100.0); 
+    cairo_set_source_rgb(cr, color, color, color);
+    cairo_set_line_width(cr, 3*linewidth);
+    cairo_stroke_preserve(cr); // preserve the path
 
-  // reset color and line width
-  cairo_set_source_rgb(cr, og_col, og_col, og_col);
-  cairo_set_line_width(cr, linewidth);
+    // reset color and line width
+    cairo_set_source_rgb(cr, og_col, og_col, og_col);
+    cairo_set_line_width(cr, linewidth);
 }
 
 
 void
 FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
-
   //set width of hatches (2-10 times as thick as original line)
   double wide = (2 + (rand() % 9)) * linewidth;
   cairo_set_line_width(cr, wide);
@@ -50,9 +49,9 @@ FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
   cairo_set_dash(cr, pattern, 2, 0);
   cairo_stroke_preserve(cr);
 
-  //return to original settings
-  cairo_set_line_width(cr, linewidth);
-  cairo_set_dash(cr, pattern, 0, 0); 
+    //return to original settings
+    cairo_set_line_width(cr, linewidth);
+    cairo_set_dash(cr, pattern, 0, 0); 
 }
 
 
@@ -201,15 +200,14 @@ FlowLines::generate_curve(cairo_t *cr, bool horizontal, int width, int height) {
 void
 FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
 		    bool curved, bool doubleline, bool horizontal, 
-		    int seed, int width, int height){
+		    int seed, int width, int height, double color){
 
-  double color, magic_line_ratio, line_width;
+  double magic_line_ratio, line_width;
   coords start_point;
       
   srand(seed);
 
   //set line color and width
-  color = (rand() % 20) / 100.0; //keep color fairly dark
   cairo_set_source_rgb(cr, color, color, color); // gray-scale
   magic_line_ratio = 1.0/(40.0 + (rand() % 40)); // ratio to keep line scaled
   line_width = std::min(width, height) * magic_line_ratio;
