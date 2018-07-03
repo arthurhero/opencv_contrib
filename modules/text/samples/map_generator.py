@@ -14,8 +14,18 @@ blocky_fonts=['Chromaletter','MathJax_Fraktur','eufm10']
 regular_fonts=['cmmi10','Sans','Serif']
 cursive_fonts=['URW Chancery L']
 
-        
+
 s=cv2.text.TextSynthesizer_create(32)
+
+def read_words(words_file):
+    open_file = open(words_file, 'r')
+    words_list =[] 
+    contents = open_file.readlines()
+    for i in range(len(contents)):
+        words_list.append(contents[i].strip('\n'))
+    return words_list    
+    open_file.close()
+
 
 # GUI Callsback functions
 
@@ -25,6 +35,8 @@ def initialiseSynthesizers():
     global blocky_fonts
     global regular_fonts
     global cursive_fonts
+
+    words = read_words("IA/Civil.txt")
     s.setSampleCaptions(words)
 
     s.setBlockyFonts(blocky_fonts)
@@ -37,7 +49,7 @@ def generator():
     global s
     k=0
     #while True:
-    while k<100000:
+    while k<10000:
         caption,mat=s.generateSample()
         #yield s.generateSample()
         print caption
@@ -52,8 +64,8 @@ if __name__=='__main__':
     end=time.time()
     print end-start
     '''
-    
+
     map_generator=generator()
     next(map_generator)
     '''
-    
+
