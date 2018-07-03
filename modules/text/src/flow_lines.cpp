@@ -20,23 +20,40 @@ FlowLines::make_dash_pattern(double * pattern, int len) {
   }
 }
 
-
+/*
+possibly optimize by using cairo_transform instead of manual_translate?
+keep everything the same, but change draw_parallel for cairo_translate 
+(may need if statements to check which way to translate)
+ */
 void
-FlowLines::draw_boundry(cairo_t *cr, double linewidth, double og_col, bool horizontal) {
+FlowLines::draw_boundary(cairo_t *cr, double linewidth, double og_col, bool horizontal) {
 
-    // set border line gray-scale color (keep it lighter than original)
-    double color = .3 + ((rand() % 50) / 100.0); 
-    cairo_set_source_rgb(cr, color, color, color);
-
-    // calculate a random distance between lines (range 0 - linewidth)
-    double distance = (rand() % (int) ceil(linewidth * 100)) / 100.0;
+  // get original dash code
+  int dash_len = cairo_get_dash_count(cr);
+  double dash[dash_len], *offset;
+  cairo_get_dash(cr, dash, offset);
+  
+  // calculate a distance between lines (range linewidth - 6*linewidth)
+  double distance = (1 + rand() % 6) * linewidth;
     
-    // draw a secondary line next to original
-    draw_parallel(cr, horizontal, distance);
+  // set boundary line characteristics
+  cairo_set_line_width(cr, 6*linewidth);
+  cairo_set_dash(cr, dash, 0,0); //set dash pattern to none
 
-    // reset color and line width
-    cairo_set_source_rgb(cr, og_col, og_col, og_col);
-    cairo_set_line_width(cr, linewidth);
+  // set boundary line gray-scale color (lighter than original)
+  double color = og_col + .35;
+  cairo_set_source_rgb(cr, color, color, color);
+
+  // stroke the boundary line
+  cairo_stroke_preserve(cr);
+
+  // translate distance so that main line is drawn off center of boundary
+  draw_parallel(cr, horizontal, distance, false); //don't stroke new path
+
+  // reset to color and line width of original line
+  cairo_set_line_width(cr, linewidth);
+  cairo_set_source_rgb(cr, og_col, og_col, og_col);
+  cairo_set_dash(cr, dash, dash_len, 0);
 }
 
 
@@ -61,7 +78,7 @@ FlowLines::draw_hatched(cairo_t *cr, double linewidth) {
 
 
 void
-FlowLines::draw_parallel(cairo_t *cr, bool horizontal, double distance) {
+FlowLines::draw_parallel(cairo_t *cr, bool horizontal, double distance, bool stroke) {
   
   cairo_path_t *path;
   cairo_path_data_t *data;
@@ -79,8 +96,8 @@ FlowLines::draw_parallel(cairo_t *cr, bool horizontal, double distance) {
     manual_translate(cr, path, data, xtrans, ytrans); 
   }
 
-  //stroke new parallel line
-  cairo_stroke(cr);
+  //stroke new parallel line if stroke flag is true
+  if(stroke) cairo_stroke(cr);
 
   //destroy used up path
   cairo_path_destroy(path);
@@ -201,7 +218,7 @@ FlowLines::generate_curve(cairo_t *cr, bool horizontal, int width, int height) {
 
 
 void
-FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
+FlowLines::addLines(cairo_t *cr, bool boundary, bool hatched, bool dashed,
 		    bool curved, bool doubleline, bool horizontal, 
 		    int seed, int width, int height, double color){
 
@@ -241,7 +258,7 @@ FlowLines::addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed,
   if(dashed) { set_dash_pattern(cr); } 
 
   // set boundry or not
-  if(boundry) { draw_boundry(cr, line_width, color, horizontal); }
+  if(boundary) { draw_boundary(cr, line_width, color, horizontal); }
 
   // set hatching or not
   if(hatched) { draw_hatched(cr, line_width); } 

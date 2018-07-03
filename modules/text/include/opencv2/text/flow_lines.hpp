@@ -32,7 +32,7 @@ private: //----------------------- PRIVATE METHODS --------------------------
    * horizontal - the orientation of the line (false = vertical)
    */
   static void
-  draw_boundry(cairo_t *cr, double linewidth, double og_col, bool horizontal);
+  draw_boundary(cairo_t *cr, double linewidth, double og_col, bool horizontal);
 
   /*
    * Draws the main line (thin) and then another line (thick) with a specific
@@ -52,9 +52,12 @@ private: //----------------------- PRIVATE METHODS --------------------------
    * cr - cairo context
    * horizontal - the orientation of the line (false = vertical)
    * distance - the distance between the original line and the new parallel line
+   * stroke - flag that dictates whether or not to stroke the parallel line.
+   *          (optional parameter, defaults to true)
    */
   static void
-  draw_parallel(cairo_t *cr, bool horizontal, double distance);
+  draw_parallel(cairo_t *cr, bool horizontal, double distance, 
+		bool stroke=true);
 
   /*
    * Sets an arbitrary dash pattern to the path stored by cr
@@ -101,7 +104,7 @@ public: //----------------------- PUBLIC METHODS --------------------------
    * specified by the boolean parameters
    *
    * cr - cairo context
-   * boundry - if true, add a colored line that runs next to the original
+   * boundary - if true, add a colored line that runs next to the original
    * hatched - if true, add short perpendicular lines through the original
    * dashed - if true, make line dashed with arbitrary pattern
    * curved - if true, add curvature with create_curved_path from pc
@@ -113,7 +116,7 @@ public: //----------------------- PUBLIC METHODS --------------------------
    * height - the height of the layout in pixels
    */
   static void
-  addLines(cairo_t *cr, bool boundry, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int seed, int width, int height, double color);
+  addLines(cairo_t *cr, bool boundary, bool hatched, bool dashed, bool curved, bool doubleline, bool horizontal, int seed, int width, int height, double color);
 
 
 };
