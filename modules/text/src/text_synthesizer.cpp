@@ -310,7 +310,7 @@ namespace cv{
                 //colordiffProb_
                 {0.5,0.5,0,0.2},
                 //distracttextProb_
-                {0.2,0.5,0.8,0.5},
+                {0.1,0.5,0.8,0.1},
                 //boundryProb_
                 {0.2,0,0.3,0},
                 //colorblobProb_
@@ -318,13 +318,13 @@ namespace cv{
                 //straightlineProb_
                 {0.2,0.1,0.9,0.2},
                 //gridProb_
-                {0.1,0,0.3,0},
+                {0.6,0,0.7,0},
                 //citypointProb_
                 {0,0,0,0.2},
                 //parallelProb_
-                {0,0.4,0,0},
+                {0.6,0.9,0,0},
                 //vparallelProb_
-                {0,0.6,0,0},
+                {0.6,0.9,0,0},
                 //mountainProb_
                 {0.1,0,0.2,0.1},
                 //railroadProb_
@@ -332,7 +332,7 @@ namespace cv{
                 //riverlineProb_
                 {0.95,0,0.5,0.1}
             },
-            maxnum_{3,2,5,2}
+            maxnum_{6,4,10,4}
         {
 
             //independent properties
@@ -340,8 +340,8 @@ namespace cv{
             rotatedProbability_=0.3;
 
 
-            finalBlendAlpha_=0.9;
-            finalBlendProb_=0;
+            finalBlendAlpha_=0.3;
+            finalBlendProb_=0.4;
 
 
         }
@@ -648,7 +648,7 @@ namespace cv{
                         cairo_path_t *path;
                         PangoLayoutLine *line;
                         cout << "before tt" << endl;
-                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,this->rng_.next()%3+3,this->rng_.next());
+                        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,(double)this->resHeight_,0,0,this->rng_.next()%2+3,this->rng_.next());
 
                         cout << "after tt" << endl;
                         double x1,x2,y1,y2;
@@ -731,10 +731,14 @@ namespace cv{
                     cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
                     //draw distracting text
                     if (distract) {
-                        char font2[50];
-                        int shrink = this->rng_.next()%3+2;
-                        this->generateFont(font2,size/1024/shrink);
-                        tt.distractText(cr_n, patchWidth, this->resHeight_, font2, time(NULL));
+                        int dis_num = this->rng_.next()%3+1;
+
+                        for (int i=0;i<dis_num;i++) {
+                            char font2[50];
+                            int shrink = this->rng_.next()%3+2;
+                            this->generateFont(font2,size/1024/shrink);
+                            tt.distractText(cr_n, patchWidth, this->resHeight_, font2, this->rng_.next());
+                        }
                     }
 
                     cout << "destroy cr_n" << endl;
@@ -772,7 +776,7 @@ namespace cv{
                 }
 
                 void addGaussianNoise(Mat& out){
-                    double sigma = (rng_.next()%10+1)/100.0;
+                    double sigma = (rng_.next()%7+2)/100.0;
 
                     Mat noise = Mat(out.rows, out.cols, CV_32F);
                     randn(noise, 0, sigma);
@@ -789,14 +793,14 @@ namespace cv{
                 }
 
                 void addGaussianBlur(Mat& out){
-                    int ker_size = rng_.next()%2*2+1;
+                    int ker_size = rng_.next()%2*2+3;
                     GaussianBlur(out,out,Size(ker_size,ker_size),0,0,BORDER_REFLECT_101);
                 }
 
                 void addBgBias(cairo_t *cr, int width, int height, int color){
 
-                    cairo_pattern_t *pat = cairo_pattern_create_linear(width/2,0,width/2,height);
-                    cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,height/2,width,height/2);
+                    cairo_pattern_t *pat = cairo_pattern_create_linear(rng_.next()%width,0,rng_.next()%width,height);
+                    cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,rng_.next()%height,width,rng_.next()%height);
                     int num = rng_.next()%5+3; 
                     int num2 = rng_.next()%30+5; 
                     double offset = 1.0/(num-1);
@@ -833,7 +837,7 @@ namespace cv{
                     if (find(features.begin(), features.end(), Colordiff)!= features.end()) {
                         double color1 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
                         double color2 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
-                        tt.colorDiff(cr, width, this->resHeight_, time(NULL), color1, color2);
+                        tt.colorDiff(cr, width, this->resHeight_, this->rng_.next(), color1, color2);
                     }
                     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
                         addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
@@ -845,44 +849,44 @@ namespace cv{
                     if (find(features.begin(), features.end(), Parallel)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
-                        tt.addBgPattern(cr, width, this->resHeight_, true, false, true, time(NULL));
+                        tt.addBgPattern(cr, width, this->resHeight_, true, false, true, this->rng_.next());
                     }
                     if (find(features.begin(), features.end(), Vparallel)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
-                        tt.addBgPattern(cr, width, this->resHeight_, false, false, true, time(NULL));
+                        tt.addBgPattern(cr, width, this->resHeight_, false, false, true, this->rng_.next());
                     }
                     if (find(features.begin(), features.end(), Grid)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         cairo_set_source_rgb(cr,color,color,color);
-                        tt.addBgPattern(cr, width, this->resHeight_, true, true, false, time(NULL));
+                        tt.addBgPattern(cr, width, this->resHeight_, true, true, false, this->rng_.next());
                     }
                     if (find(features.begin(), features.end(), Railroad)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
                         int line_num = this->rng_.next()%2+1;
                         for (int i=0;i<line_num;i++) {
-                            fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                            fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
                         }
                     }
                     if (find(features.begin(), features.end(), Boundry)!= features.end()) {
-                        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+                        double color = (bg_color-contrast)/255.0;
                         int line_num = this->rng_.next()%2+1;
                         for (int i=0;i<line_num;i++) {
-                            fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                            fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
                         }
                     }
                     if (find(features.begin(), features.end(), Straight)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        int line_num = this->rng_.next()%2+1;
+                        int line_num = this->rng_.next()%5+1;
                         for (int i=0;i<line_num;i++) {
-                            fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                            fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
                         }
                     }
                     if (find(features.begin(), features.end(), Riverline)!= features.end()) {
                         double color = (bg_color-this->rng_.next()%contrast)/255.0;
-                        int line_num = this->rng_.next()%2+1;
+                        int line_num = this->rng_.next()%5+1;
                         for (int i=0;i<line_num;i++) {
-                            fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, time(NULL), width, this->resHeight_, color);
+                            fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
                         }
                     }
                     if (find(features.begin(), features.end(), Citypoint)!= features.end()) {

@@ -374,7 +374,7 @@ TextTransformations::point_to_path(cairo_t *cr, std::vector<coords> points) {
   double x = start.first / 100, y = start.second, u = end.first / 100, w = end.second;
   double a, b, c, d;
 
-  c = rand()%11-5, d = rand()%11-5;
+  c = rand()%5-2, d = rand()%5-2;
 
   if (x == u) return;
   else if (x == 0) {
@@ -576,7 +576,8 @@ TextTransformations::make_points_wave(double width, double height, int num_point
       - (rand() % (int) ceil((1.0/8.0) * (width / (num_points - 1))));
 
     //cout << "x" << endl;
-    x = x_variance + ((width / (num_points - 1)) * i);
+    //x = x_variance + ((width / (num_points - 1)) * i);
+    x = ((width / (num_points - 1)) * i);
     y = height - y_variance; //ensure points stay above the bottom of the canvas
 
     coords new_point(x,y);
