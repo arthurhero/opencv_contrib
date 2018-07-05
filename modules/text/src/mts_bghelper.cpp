@@ -416,71 +416,71 @@ MTS_BackgroundHelper::generateBgSample(cairo_surface_t *bgSurface, std::vector<B
 
     cairo_surface_t *surface;
     cairo_t *cr;
-    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, this->resHeight_);
+    surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
     cr = cairo_create (surface);
 
     cairo_set_source_rgb(cr, bg_color/255.0,bg_color/255.0,bg_color/255.0);
     cairo_paint (cr);
 
     if (find(features.begin(), features.end(), Colordiff)!= features.end()) {
-        double color1 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
-        double color2 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
-        tt.colorDiff(cr, width, this->resHeight_, this->rng_.next(), color1, color2);
+        double color1 = (bg_color-rand()%(contrast/2))/255.0;
+        double color2 = (bg_color-rand()%(contrast/2))/255.0;
+        tt.colorDiff(cr, width, height, rand(), color1, color2);
     }
     if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
-        addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
+        addSpots(surface,0,false,bg_color-rand()%contrast);
     }
 
     //add bg bias field
-    addBgBias(cr, width, this->resHeight_, bg_color);
+    addBgBias(cr, width, height, bg_color);
 
     if (find(features.begin(), features.end(), Parallel)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+        double color = (bg_color-rand()%contrast)/255.0;
         cairo_set_source_rgb(cr,color,color,color);
-        tt.addBgPattern(cr, width, this->resHeight_, true, false, true, this->rng_.next());
+        tt.addBgPattern(cr, width, height, true, false, true, rand());
     }
     if (find(features.begin(), features.end(), Vparallel)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+        double color = (bg_color-rand()%contrast)/255.0;
         cairo_set_source_rgb(cr,color,color,color);
-        tt.addBgPattern(cr, width, this->resHeight_, false, false, true, this->rng_.next());
+        tt.addBgPattern(cr, width, height, false, false, true, rand());
     }
     if (find(features.begin(), features.end(), Grid)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+        double color = (bg_color-rand()%contrast)/255.0;
         cairo_set_source_rgb(cr,color,color,color);
-        tt.addBgPattern(cr, width, this->resHeight_, true, true, false, this->rng_.next());
+        tt.addBgPattern(cr, width, height, true, true, false, rand());
     }
     if (find(features.begin(), features.end(), Railroad)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
-        int line_num = this->rng_.next()%2+1;
+        double color = (bg_color-rand()%contrast)/255.0;
+        int line_num = rand()%2+1;
         for (int i=0;i<line_num;i++) {
-            fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+            fl.addLines(cr, false, true, false, true, false, (bool)rand()%2, rand(), width, height, color);
         }
     }
     if (find(features.begin(), features.end(), Boundry)!= features.end()) {
         double color = (bg_color-contrast)/255.0;
-        int line_num = this->rng_.next()%2+1;
+        int line_num = rand()%2+1;
         for (int i=0;i<line_num;i++) {
-            fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+            fl.addLines(cr, true, false, (bool)rand()%2, true, false, (bool)rand()%2, rand(), width, height, color);
         }
     }
     if (find(features.begin(), features.end(), Straight)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
-        int line_num = this->rng_.next()%5+1;
+        double color = (bg_color-rand()%contrast)/255.0;
+        int line_num = rand()%5+1;
         for (int i=0;i<line_num;i++) {
-            fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+            fl.addLines(cr, false, false, false, false, false, (bool)rand()%2, rand(), width, height, color);
         }
     }
     if (find(features.begin(), features.end(), Riverline)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
-        int line_num = this->rng_.next()%5+1;
+        double color = (bg_color-rand()%contrast)/255.0;
+        int line_num = rand()%5+1;
         for (int i=0;i<line_num;i++) {
-            fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+            fl.addLines(cr, false, false, false, true, (bool)rand()%2, (bool)rand()%2, rand(), width, height, color);
         }
     }
     if (find(features.begin(), features.end(), Citypoint)!= features.end()) {
-        double color = (bg_color-this->rng_.next()%contrast)/255.0;
+        double color = (bg_color-rand()%contrast)/255.0;
         cairo_set_source_rgb(cr,color,color,color);
-        tt.city_point(cr, width, this->resHeight_);
+        tt.city_point(cr, width, height);
     }
 
     *bgSurface = *surface;

@@ -79,13 +79,13 @@ MTS_BaseHelper::MTS_BaseHelper()
 }
 
 void MTS_BaseHelper::setTypes(){
-    int bg_prob = this->rand()%10000;
+    int bg_prob = rand()%10000;
     if (bg_prob<10000*bgProbability_[0]){
         textType_=Water;
         bgType_=Flow;
     } else if (bg_prob<10000*bgProbability_[1]){
         textType_=Bigland;
-        if (this->rand()%2==0){
+        if (rand()%2==0){
             bgType_=Waterbody;
         } else {
             bgType_=Small;
@@ -98,7 +98,7 @@ void MTS_BaseHelper::setTypes(){
 
 bool 
 MTS_BaseHelper::rndProbUnder(double v){
-    return (this->rand() % 10000) < (10000 * v);
+    return (rand() % 10000) < (10000 * v);
 }
 
 void
@@ -127,9 +127,9 @@ MTS_BaseHelper::addSpots (cairo_surface_t *text, int degree, bool trans, int col
     double rads[pnum];
 
     for (int i=0;i<pnum;i++) {
-        xs[i]=this->rand()%stride;
-        ys[i]=this->rand()%height;
-        rads[i]=this->rand()%(height/(4+2*degree));
+        xs[i]=rand()%stride;
+        ys[i]=rand()%height;
+        rads[i]=rand()%(height/(4+2*degree));
     }
 
     for (int r=0;r<height;r++) {
@@ -147,7 +147,7 @@ MTS_BaseHelper::addSpots (cairo_surface_t *text, int degree, bool trans, int col
             for (int c=0;c<stride;c++) {
                 double dis = pow(pow((double)(r-y),2)+pow((double)(c-x),2),0.5);
                 prob=100-(100/(1+100*exp(-(dis-rad))));
-                if (this->rand()%100 < prob) {
+                if (rand()%100 < prob) {
                     data[r*stride+c]=255;
                 }
             }
@@ -555,7 +555,7 @@ MTS_BaseHelper::point_to_path(cairo_t *cr, std::vector<coords> points) {
     double x = start.first / 100, y = start.second, u = end.first / 100, w = end.second;
     double a, b, c, d;
 
-    c = this->rand()%5-2, d = this->rand()%5-2;
+    c = rand()%5-2, d = rand()%5-2;
 
     if (x == u) return;
     else if (x == 0) {
@@ -754,7 +754,7 @@ MTS_BaseHelper::make_points_wave(double width, double height, int num_points) {
     //created num_points x,y coords
     for(int i = num_points - 1; i >= 0; i--) {
         //y variance of + 0 to 1/8 height
-        y_variance = (this->rand() % (int) ((1.0/8.0) * height));
+        y_variance = (rand() % (int) ((1.0/8.0) * height));
 
         x = ((width / (num_points - 1)) * i);
         y = height - y_variance; //ensure points stay above the bottom of the canvas

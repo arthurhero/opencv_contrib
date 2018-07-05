@@ -26,9 +26,9 @@ MTS_TextHelper::generateFont(char *ret, int fontsize){
     double *fontProb;
     int font_prob = rand() % 10000;
 
-    int bgIndex=static_cast<int>(this->bgType_); // DONT DO THIS
+    int bgIndex=static_cast<int>(bgType_); // DONT DO THIS
 
-    fontProb=this->fontProbability_[bgIndex];
+    fontProb=fontProbability_[bgIndex];
 
 
     for (int i = 0; i < 3; i++) {
@@ -36,11 +36,11 @@ MTS_TextHelper::generateFont(char *ret, int fontsize){
         if(font_prob < 10000*fontProb[i]){
             cout << "font index " << i << endl;
 
-            int listsize = this->fonts_[i]->size();
+            int listsize = fonts_[i]->size();
             cout << "list size " << listsize << endl;
             // assert list isn't empty
             assert(listsize);
-            const char *fnt = this->fonts_[i]->at(rand() % listsize).c_str();
+            const char *fnt = fonts_[i]->at(rand() % listsize).c_str();
             strcpy(ret,fnt);
             break;
         }
@@ -210,12 +210,12 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     cout << "patch width " << patchWidth << endl;
 
     cout << "after stretch" << endl;
-    if (this->rotatedAngle_!=0) {
-        cout << "rotated angle" << this->rotatedAngle_ << endl;
-        cairo_rotate(cr, this->rotatedAngle_);
+    if (rotatedAngle_!=0) {
+        cout << "rotated angle" << rotatedAngle_ << endl;
+        cairo_rotate(cr, rotatedAngle_);
 
-        double sine = abs(sin(this->rotatedAngle_));
-        double cosine = abs(cos(this->rotatedAngle_));
+        double sine = abs(sin(rotatedAngle_));
+        double cosine = abs(cos(rotatedAngle_));
 
         double ratio = ink_h/(double)ink_w;
         double textWidth, textHeight;
@@ -243,7 +243,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
         pango_layout_set_markup(layout, mark.c_str(), -1);
 
         double x_off=0, y_off=0;
-        if (this->rotatedAngle_<0) {
+        if (rotatedAngle_<0) {
             x_off=-sine*sine*textWidth;
             y_off=cosine*sine*textWidth;
         } else {
@@ -350,13 +350,13 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
     //draw distracting text
     if (distract) {
-        int dis_num = this->rng_.next()%3+1;
+        int dis_num = rand()%3+1;
 
         for (int i=0;i<dis_num;i++) {
             char font2[50];
-            int shrink = this->rng_.next()%3+2;
+            int shrink = rand()%3+2;
             generateFont(font2,size/1024/shrink);
-            tt.distractText(cr_n, patchWidth, height, font2, this->rng_.next());
+            tt.distractText(cr_n, patchWidth, height, font2, rand());
         }
     }
 
@@ -368,7 +368,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     cairo_surface_destroy (surface);
 
     cout << "add spots" << endl;
-    if(this->rndProbUnder(this->missingProbability_)){
+    if(rndProbUnder(missingProbability_)){
         addSpots(surface_n,2,true,0);
     }
 
@@ -473,11 +473,11 @@ MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
 
 void
 MTS_TextHelper::set_fonts(std::shared_ptr<std::vector<String> > *data) {
-    this->fonts_ = data;
+    fonts_ = data;
 }
 
 
 void
 set_sampleCaptions(std::shared_ptr<std::vector<String> > data) {
-    this->sampleCaptions_ = data;
+    sampleCaptions_ = data;
 }
