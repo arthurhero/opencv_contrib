@@ -261,14 +261,13 @@ public:// -------------------- PUBLIC METHODS --------------------------------
    *
    */
   static char
-  randomChar(int seed);
+  randomChar();
   
   /*
    *
    */
   static void
-  distractText (cairo_t *cr, int width, int height, char *font, 
-		int seed); 
+  distractText (cairo_t *cr, int width, int height, char *font); 
   
   /*
    * Draws a circle along an arbitrary edge of the surface

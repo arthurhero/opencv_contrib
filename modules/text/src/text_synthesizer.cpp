@@ -349,7 +349,7 @@ namespace cv{
         class TextSynthesizerImpl: public TextSynthesizer{
             protected:
                 bool rndProbUnder(double v){
-                    return (this->rng_.next()%10000)<(10000*v);
+                    return (rand() % 10000) < (10000 * v);
                 }
 
                 void updateFontNameList(std::vector<String>& fntList){
