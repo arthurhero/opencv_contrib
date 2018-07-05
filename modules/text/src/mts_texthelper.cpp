@@ -268,7 +268,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
         PangoLayoutLine *line;
         cout << "before tt" << endl;
 
-        tt.create_curved_path(cr,path,line,layout,(double)patchWidth,
+        create_curved_path(cr,path,line,layout,(double)patchWidth,
                 (double) height,0,0,rand()%2+3, rand());
 
         cout << "after tt" << endl;
@@ -282,7 +282,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
         cairo_path_t *path_n=cairo_copy_path(cr);
         cairo_new_path(cr);
         cairo_path_data_t *path_data_n;
-        fl.manual_translate(cr, path_n, path_data_n, -x1, -y1);
+        manual_translate(cr, path_n, path_data_n, -x1, -y1);
 
         cairo_path_extents(cr,&x1,&y1,&x2,&y2);
         cout << "x1 " << x1 << endl;
@@ -356,7 +356,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
             char font2[50];
             int shrink = rand()%3+2;
             generateFont(font2,size/1024/shrink);
-            tt.distractText(cr_n, patchWidth, height, font2, rand());
+            distractText(cr_n, patchWidth, height, font2, rand());
         }
     }
 
