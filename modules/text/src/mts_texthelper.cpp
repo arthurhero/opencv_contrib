@@ -373,7 +373,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     }
 
     //pass back values
-    textSurface=surface_n;
+    *textSurface=*surface_n;
     width=patchWidth;
 }
 
