@@ -44,9 +44,7 @@ MTS_TextHelper::generateFont(char *ret, int fontsize){
       strcpy(ret,fnt);
       break;
     }
-
   }
-
   cout << "after for" << endl;
 
   //set probability of being Italic
@@ -80,15 +78,15 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
         rotatedAngle_ = 0;
     }
 
-
     int bgIndex=static_cast<int>(bgType_);
 
     double curvingProb=curvingProbability_[bgIndex];
     double *spacingProb=spacingProbability_[bgIndex];
     double *stretchProb=stretchProbability_[bgIndex];
 
+    // set probability of being curved
     bool curved = false;
-    if(rndProbUnder(curvingProb)){
+    if(MTS_BaseHelper::rndProbUnder(curvingProb)){
         curved = true;
     }
 
@@ -136,7 +134,6 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 40*height, height);
     cr = cairo_create (surface);
 
-
     char font[50];
     cout << "generate font" << endl;
     generateFont(font,(int)fontsize);
@@ -163,13 +160,12 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     } else {
         pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
     }
-
-    pango_layout_set_font_description (layout, desc);
-
+		    
     int spacing_ = (int)(1024*spacing);
 
     std::ostringstream stm;
     stm << spacing_;
+    // set the markup string and put into pango layout
     string mark = "<span letter_spacing='"+stm.str()+"'>"+caption+"</span>";
     cout << "mark " << mark << endl;
 
@@ -206,7 +202,6 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     cout << "new y " << ink_y << endl;
     cout << "new width " << ink_w << endl;
     cout << "new height " << ink_h << endl;
-
     cur_size = pango_font_description_get_size(desc);
     cout << "new cur size " << cur_size << endl;
 
@@ -352,8 +347,6 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     cairo_rectangle(cr_n, 0, 0, patchWidth, height);
     cairo_fill(cr_n);
 
-    cairo_identity_matrix(cr_n);
-
     cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
     //draw distracting text
     if (distract) {
@@ -402,7 +395,6 @@ MTS_TextHelper::generateTxtSample (string &caption, cairo_surface_t *textSurface
         caption=string(text);
         generateTxtPatch(textSurface,caption,height,width,text_color,distract);
     }
-
 }
 
 
@@ -476,4 +468,16 @@ MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
     pango_font_description_free (desc);
     free(logical_rect);
     free(ink_rect);
+}
+
+
+void
+MTS_TextHelper::set_fonts(std::shared_ptr<std::vector<String> > data[]) {
+  this->fonts_ = data;
+}
+
+
+void
+set_sampleCaptions(std::shared_ptr<std::vector<String> > data) {
+  this->sampleCaptions_ = data;
 }
