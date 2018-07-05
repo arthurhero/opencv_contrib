@@ -298,27 +298,41 @@ namespace cv{
             int contrast = bg_brightness - text_color;
 
             Mat txtSample;
-            Mat bgSample;
-            Mat bgResized;
             Mat txtMask;
-            Mat txtMerged;
+            Mat bgSample;
             Mat floatBg;
             Mat floatTxt;
             Mat floatMask;
 
             std::vector<Mat> txtChannels;
+            
+            cairo_surface_t *textSurface;
+            int width;
             //cout << "generating text sample" << endl;
             if (find(bgFeatures.begin(), bgFeatures.end(), Distracttext)!= bgFeatures.end()) {
-                th.generateTxtSample(caption, txtSample,txtMask,text_color, true);
+                th.generateTxtSample(caption,textSurface,height_,width,text_color,true);
             } else {
-                th.generateTxtSample(caption, txtSample,txtMask,text_color, false);
+                th.generateTxtSample(caption,textSurface,height_,width,text_color,false);
             }
+            txtSample=Mat(height_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
+            txtMask=Mat(height_,width,CV_8UC1,Scalar(0));
+
+            cout << "converting to mat" << endl;
+            CairoToMat(textSurface,txtSample,txtMask);
+
+            cout << "destroy surface" << endl;
+            cairo_surface_destroy (textSurface);
+
             //cout << "finished generating text sample" << endl;
 
             //cout << "generating bg sample" << endl;
             cout << "bg feature num " << bgFeatures.size() << endl; 
 
-            bh.generateBgSample(bgSample, bgFeatures, txtSample.cols, bg_brightness, contrast);
+            cairo_surface_t *bgSurface;
+            bh.generateBgSample(bgSurface, bgFeatures, height_, width, bg_brightness, contrast);
+            bgSample=Mat(height_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
+            CairoToMat(bgSurface,bgSample);
+            cairo_surface_destroy(bgSurface);
             //cout << "finished generating bg sample" << endl;
 
             bgSample.convertTo(floatBg, CV_32FC3, 1.0/255.0);
@@ -331,7 +345,7 @@ namespace cv{
 
             float blendAlpha=float(helper.finalBlendAlpha_*(helper.rand()%1000)/1000.0);
             if(helper.rndProbUnder(helper.finalBlendProb_)){
-                blendWeighted(sample,sample,bgResized,1-blendAlpha,blendAlpha);
+                blendWeighted(sample,sample,floatBg,1-blendAlpha,blendAlpha);
             }
 
             addGaussianNoise(sample);
