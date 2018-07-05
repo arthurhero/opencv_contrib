@@ -67,8 +67,7 @@ class MTS_BackgroundHelper : MTS_BaseHelper {
 
 
         /*
-         * Generates a wiggly curved line path (but doesn't stroke it to surface)
-         * using methods from the TextTransformations class
+         * Generates a wiggly line path (but doesn't stroke it to surface)
          *
          * cr - cairo context
          * horizontal - gives the orientation of the line (false = vertical)
