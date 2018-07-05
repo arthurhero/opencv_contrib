@@ -8,10 +8,6 @@
 #include <memory>
 
 
-// The different categories for text features
-enum TextType {Water, BigLand, SmallLand};
-
-
 /*
  * A class to handle text transformation in vector space, and pango
  * text rendering 
@@ -48,6 +44,9 @@ private:// --------------- PRIVATE METHODS AND FIELDS ------------------------
   static void
   generateFont(char *ret, int fontsize);
 
+  static void
+  generateTxtPatch(cairo_surface_t *textSurface, string caption,int height,int &width, int text_color, bool distract);
+
 
 public:// --------------------- PUBLIC METHODS -------------------------------
   
@@ -74,16 +73,15 @@ public:// --------------------- PUBLIC METHODS -------------------------------
    * Provides the randomly rendered text 
    *
    * caption - the string which will be rendered. 
-   * sample - an out variable containing a 32FC3 matrix with the rendered 
+   * textSurface - an out variable containing a 32FC3 matrix with the rendered 
    *          text including border and shadow.
-   * sampleMask - a result parameter which contains the alpha value which 
-   *              is usefull for overlaying the text sample on other images.
+   * height - height of the surface
+   * width - width of the surface that will be determined
    * text_color - the grayscale color value for the text
    * distract - flag that dictates whether distractor text will be present
    */
   void 
-  generateTxtSample (CV_OUT String &caption, CV_OUT Mat& sample, 
-		     CV_OUT Mat& sampleMask, int text_color, bool distract);
+  generateTxtSample (string &caption, cairo_surface_t *textSurface, int height, int &width, int text_color, bool distract);
 
 };
 

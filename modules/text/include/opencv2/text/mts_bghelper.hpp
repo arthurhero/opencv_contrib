@@ -5,14 +5,6 @@
 #include <vector>
 #include "mts_basehelper.hpp"
 
-// The 4 general types of backgrounds that can be generated
-enum BGType {Flow, Waterbody, Big, Small};
-
-// All possible features that can be incorporated into a background
-enum BGFeature {Colordiff, Distracttext, Boundry, Colorblob, 
-		Straight, Grid, Citypoint, Parallel, 
-		Vparallel, Mountain, Railroad, Riverline};
-
 /*
  * A class to handle the synthetic generation of all background features
  */

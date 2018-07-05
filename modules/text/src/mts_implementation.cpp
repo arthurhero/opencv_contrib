@@ -274,21 +274,8 @@ namespace cv{
         }
 
         void MTSImplementation::generateSample(CV_OUT String &caption, CV_OUT Mat & sample){
-            int bg_prob = helper.rand()%10000;
-            if (bg_prob<10000*helper.bgProbability_[0]){
-                helper.bgType_=Water;
-                helper.bgType4_=Flow;
-            } else if (bg_prob<10000*helper.bgProbability_[1]){
-                helper.bgType_=Bigland;
-                if (helper.rand()%2==0){
-                    helper.bgType4_=Waterbody;
-                } else {
-                    helper.bgType4_=Small;
-                }
-            } else {
-                helper.bgType_=Smallland;
-                helper.bgType4_=Small;
-            }
+
+            helper.setTypes();
 
             std::vector<BGFeature> bgFeatures;
             bh.generateBgFeatures(bgFeatures);
@@ -308,12 +295,14 @@ namespace cv{
             
             cairo_surface_t *textSurface;
             int width;
+            string text;
             //cout << "generating text sample" << endl;
             if (find(bgFeatures.begin(), bgFeatures.end(), Distracttext)!= bgFeatures.end()) {
-                th.generateTxtSample(caption,textSurface,height_,width,text_color,true);
+                th.generateTxtSample(text,textSurface,height_,width,text_color,true);
             } else {
-                th.generateTxtSample(caption,textSurface,height_,width,text_color,false);
+                th.generateTxtSample(text,textSurface,height_,width,text_color,false);
             }
+            caption=String(text);
             txtSample=Mat(height_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
             txtMask=Mat(height_,width,CV_8UC1,Scalar(0));
 
