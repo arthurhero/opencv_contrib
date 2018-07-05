@@ -55,19 +55,19 @@ public:// --------------------- PUBLIC METHODS -------------------------------
   /*
    * A setter method for the private fonts_ field
    *
-   * data - an array of vectors of strings
+   * data - an array of vectors of strings that are font names
    */
   static void
-  set_fonts(std::shared_ptr<std::vector<String> > data[]);
+  set_fonts(std::shared_ptr<std::vector<string> > data[]);
 
 
   /*
    * A setter method for the private sampleCaptions_ field
    *
-   * data - a vector of strings
+   * data - a vector of strings containing words to be displayed
    */
   static void
-  set_fonts(std::shared_ptr<std::vector<String> > data);
+  set_sampleCaptions(std::shared_ptr<std::vector<string> > data);
 
 
   /*

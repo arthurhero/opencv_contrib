@@ -44,9 +44,7 @@ MTS_TextHelper::generateFont(char *ret, int fontsize){
       strcpy(ret,fnt);
       break;
     }
-
   }
-
   cout << "after for" << endl;
 
   //set probability of being Italic
@@ -80,14 +78,15 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
   }
 
 
-  int bgIndex=static_cast<int>(this->bgType_);
+  int bgIndex=static_cast<int>(this->bgType_);// DONT DO THIS
 
   double curvingProb=this->curvingProbability_[bgIndex];
   double *spacingProb=this->spacingProbability_[bgIndex];
   double *stretchProb=this->stretchProbability_[bgIndex];
 
+  // set probability of being curved
   bool curved = false;
-  if(this->rndProbUnder(curvingProb)){
+  if(MTS_BaseHelper::rndProbUnder(curvingProb)){
     curved = true;
   }
 
@@ -125,7 +124,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
   int y_pad = rand() % maxpad - maxpad/2;
   cout << "pad " << x_pad << " " << y_pad << endl;
 
-  double scale = (this->rng_.next()%5)/20.0+0.9;
+  double scale = (rand() % 5) / 20.0 + 0.9;
   cout << "scale " << scale << endl;
 
   //Start to draw a pango img
@@ -138,7 +137,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
   char font[50];
   cout << "generate font" << endl;
-  this->generateFont(font,(int)fontsize);
+  generateFont(font,(int)fontsize);
   cout << font << endl;
   //cout << caption << endl;
   cairo_set_source_rgb(cr, text_color/255.0,text_color/255.0,text_color/255.0);
@@ -153,7 +152,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
   //Weight
   double *weightProb=this->weightProbability_[bgIndex];
-  int weight_prob = this->rng_.next()%10000;
+  int weight_prob = rand()%10000;
 
   if(weight_prob < 10000*weightProb[0]){
     pango_font_description_set_weight(desc, PANGO_WEIGHT_LIGHT);
@@ -190,7 +189,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
   int cur_size = pango_font_description_get_size(desc);
   cout << "cur size " << cur_size << endl;
-  int size = (int)((double)cur_size/ink_h*this->resHeight_);
+  int size = (int)((double)cur_size / ink_h * height);
   cout << "size " << size << endl;
   pango_font_description_set_size(desc, size);
   pango_layout_set_font_description (layout, desc);
@@ -241,6 +240,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
     std::ostringstream stm;
     stm << spacing_;
+    // set the markup string and put into pango layout
     string mark = "<span letter_spacing='"+stm.str()+"'>"+caption+"</span>";
     cout << "mark " << mark << endl;
 
@@ -248,11 +248,11 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
     double x_off=0, y_off=0;
     if (this->rotatedAngle_<0) {
-      x_off=-sine*sine*textWidth;
-      y_off=cosine*sine*textWidth;
+      x_off=-sine * sine * textWidth;
+      y_off=cosine * sine * textWidth;
     } else {
-      x_off=cosine*sine*textHeight;
-      y_off=-sine*sine*textHeight;
+      x_off=cosine * sine * textHeight;
+      y_off=-sine * sine * textHeight;
     }   
     cairo_translate (cr, x_off, y_off);
 
@@ -265,15 +265,16 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
 
     pango_cairo_show_layout (cr, layout);
 
-  } else if (curved && patchWidth > 10*this->resHeight_ && spacing_deg>=10) {
+  } else if (curved && (patchWidth > 10*height) && (spacing_deg >= 10)) {
+    //stretch the text by stretch_deg
     cairo_scale(cr, stretch_deg, 1);
 
     cairo_path_t *path;
     PangoLayoutLine *line;
     cout << "before tt" << endl;
 
-    tt.create_curved_path(cr,path,line,layout,(double)patchWidth,
-			  (double) height,0,0,rand()%2+3, rand());
+    MTS_BaseHelper::create_curved_path(cr,path,line,layout,(double)patchWidth,
+				       (double) height,0,0,rand()%2+3, rand());
 
     cout << "after tt" << endl;
     double x1,x2,y1,y2;
@@ -306,13 +307,15 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
     cairo_append_path(cr_c,path_n);
     cairo_fill(cr_c);
 
-    double ratio = this->resHeight_/(y2-y1);
+    double ratio = height / (y2-y1);
     cout << "ratio " << ratio << endl;
     cairo_scale(cr,ratio,ratio);
-    patchWidth=(int)(ceil((x2-x1)*ratio)*stretch_deg);
+    patchWidth=(int)(ceil((x2 - x1) * ratio) * stretch_deg);
     cairo_set_source_surface(cr, surface_c, 0, 0);
     cairo_rectangle(cr, 0, 0, x2-x1, y2-y1);
     cairo_fill(cr);
+    
+    // clean up
     cairo_destroy (cr_c);
     cairo_surface_destroy (surface_c);
   } else {
@@ -321,7 +324,7 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
     pango_cairo_show_layout (cr, layout);
   }
 
-  //free layout
+  // clean up
   cout << "freeing" << endl;
   g_object_unref(layout);
   pango_font_description_free (desc);
@@ -337,32 +340,36 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
   cairo_surface_t *surface_n;
   cairo_t *cr_n;
 
-  surface_n = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, patchWidth, this->resHeight_);
+  surface_n = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, 
+					  patchWidth, height);
   cr_n = cairo_create (surface_n);
 
   //apply arbitrary padding and scaling
   cairo_translate (cr_n, x_pad, y_pad);
 
-  cairo_translate (cr_n, patchWidth/2, this->resHeight_/2);
+  cairo_translate (cr_n, patchWidth/2, height/2);
   cairo_scale(cr_n, scale, scale);
-  cairo_translate (cr_n, -patchWidth/2, -this->resHeight_/2);
+  cairo_translate (cr_n, -patchWidth/2, -height/2);
 
   cairo_set_source_surface(cr_n, surface, 0, 0);
-  cairo_rectangle(cr_n, 0, 0, patchWidth, this->resHeight_);
+  cairo_rectangle(cr_n, 0, 0, patchWidth, height);
   cairo_fill(cr_n);
 
   cairo_identity_matrix(cr_n);
+  
+  // set grayscale color
+  double gc = text_color/255.0; //convert from 255 scale to 1.0 scale
+  cairo_set_source_rgb(cr_n, gc, gc, gc);
 
-  cairo_set_source_rgb(cr_n, text_color/255.0,text_color/255.0,text_color/255.0);
   //draw distracting text
   if (distract) {
-    int dis_num = this->rng_.next()%3+1;
+    int dis_num = rand() % 3 + 1;
 
-    for (int i=0;i<dis_num;i++) {
+    for (int i = 0; i < dis_num; i++) {
       char font2[50];
-      int shrink = this->rng_.next()%3+2;
-      this->generateFont(font2,size/1024/shrink);
-      tt.distractText(cr_n, patchWidth, this->resHeight_, font2, this->rng_.next());
+      int shrink = rand()%3+2;
+      generateFont(font2, size / 1024 / shrink);
+      MTS_TexgtHelper::distractText(cr_n, patchWidth, height, font2, rand());
     }
   }
 
@@ -374,17 +381,16 @@ MTS_TextHelper::generateTxtPatch(Mat& output,Mat& outputMask,String caption,
   cairo_surface_destroy (surface);
 
   cout << "add spots" << endl;
-  if(this->rndProbUnder(this->missingProbability_)){
-    addSpots(surface_n,2,true,0);
+  if(MTS_BaseHelper::rndProbUnder(this->missingProbability_)){
+    MTS_BaseHelper::addSpots(surface_n,2,true,0);
   }
 
   cout << "after spots" << endl;
-  //cairo_surface_write_to_png (surface, "/home/chenziwe/aaaaa.png");
 
   Mat textImg, maskImg;
   cout << "create mats" << endl;
-  textImg =cv::Mat(this->resHeight_,patchWidth,CV_8UC3,Scalar_<uchar>(0,0,0));
-  maskImg =cv::Mat(this->resHeight_,patchWidth,CV_8UC1,Scalar(0));
+  textImg =cv::Mat(height,patchWidth,CV_8UC3,Scalar_<uchar>(0,0,0));
+  maskImg =cv::Mat(height,patchWidth,CV_8UC1,Scalar(0));
 
   cout << "converting to mat" << endl;
   CairoToMat(surface_n,textImg,maskImg);
@@ -407,16 +413,20 @@ MTS_TextHelper::generateTxtSample(CV_OUT String &caption, CV_OUT Mat& sample,
 				  bool distract){
 
   if(sampleCaptions_.size()!=0){
-    caption = sampleCaptions_[this->rng_.next()%sampleCaptions_.size()];
+    caption = sampleCaptions_[rand()%sampleCaptions_.size()];
     cout << "generating text patch" << endl;
     generateTxtPatch(sample,sampleMask,caption,text_color,distract);
   } else {
+
     int len = rand()%10+1;
     char text[len+1];
-    for (int i=0;i<len;i++) {
-      text[i]=tt.randomChar(rand());
+
+    // fill text cstring with random characters
+    for (int i = 0; i < len; i++) {
+      text[i]=MTS_TextHelper::randomChar(rand());
     }   
-    text[len]='\0';
+    text[len]='\0'; // null terminate cstring
+
     caption=String(text);
     generateTxtPatch(sample,sampleMask,caption,text_color,distract);
   }
@@ -447,10 +457,10 @@ void
 MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
 
   //generate text
-  int len = rand()%10+1;
+  int len = rand() % 10 + 1;
   char text[len+1];
 
-  for (int i=0;i<len;i++) {
+  for (int i = 0; i < len; i++) {
     text[i]=randomChar(rand());
   }
   text[len]='\0'; //null terminate the cstring
@@ -478,7 +488,7 @@ MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
 
   //randomly choose rotation degree
   int deg = rand()%360;
-  double rad = deg/180.0*3.14;
+  double rad = deg/180.0 * M_PI;
 
   cairo_translate (cr, ink_w/2.0, ink_h/2.0);
   cairo_rotate(cr, rad);
@@ -494,4 +504,16 @@ MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
   pango_font_description_free (desc);
   free(logical_rect);
   free(ink_rect);
+}
+
+
+void
+MTS_TextHelper::set_fonts(std::shared_ptr<std::vector<String> > data[]) {
+  this->fonts_ = data;
+}
+
+
+void
+set_sampleCaptions(std::shared_ptr<std::vector<String> > data) {
+  this->sampleCaptions_ = data;
 }
