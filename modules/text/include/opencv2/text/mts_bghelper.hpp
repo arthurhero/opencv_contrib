@@ -152,7 +152,18 @@ private://----------------------- PRIVATE METHODS --------------------------
 
 public://------------------------ PUBLIC METHODS ---------------------------
 
-  // make a method to generate the entire background in one 
+  /*
+   * Generates a map-like background 
+   *
+   * sample - the image surface
+   * features - the list of features to be added
+   * width - surface width in pixels
+   * bg_color - the grayscale color value for the background
+   * contrast - the contrast level
+   */
+  static void
+  generateBgSample(CV_OUT Mat& sample, std::vector<BGFeature> &features, 
+		   int width, int bg_color, int contrast);
 };
 
 

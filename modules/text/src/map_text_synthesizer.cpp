@@ -8,7 +8,7 @@ namespace cv{
     namespace text{
 
         MapTextSynthesizer::MapTextSynthesizer(int sampleHeight):
-            height_(sampleHeight){}
+            height(sampleHeight){}
 
         Ptr<MapTextSynthesizer> MapTextSynthesizer::create(int sampleHeight){
             Ptr<MapTextSynthesizer> res(new MTSImplementation(sampleHeight));

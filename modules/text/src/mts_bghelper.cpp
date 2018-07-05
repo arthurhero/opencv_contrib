@@ -22,12 +22,13 @@ MTS_BackgroundHelper::make_dash_pattern(double * pattern, int len) {
 }
 
 /*
-possibly optimize by using cairo_transform instead of manual_translate?
-keep everything the same, but change draw_parallel for cairo_translate 
-(may need if statements to check which way to translate)
- */
+  possibly optimize by using cairo_transform instead of manual_translate?
+  keep everything the same, but change draw_parallel for cairo_translate 
+  (may need if statements to check which way to translate)
+*/
 void
-MTS_BackgroundHelper::draw_boundary(cairo_t *cr, double linewidth, double og_col, bool horizontal) {
+MTS_BackgroundHelper::draw_boundary(cairo_t *cr, double linewidth, 
+				    double og_col, bool horizontal) {
 
   // get original dash code
   int dash_len = cairo_get_dash_count(cr);
@@ -71,15 +72,16 @@ MTS_BackgroundHelper::draw_hatched(cairo_t *cr, double linewidth) {
   cairo_set_dash(cr, pattern, 2, 0);
   cairo_stroke_preserve(cr);
 
-    //return to original settings
-    cairo_set_line_width(cr, linewidth);
-    cairo_set_dash(cr, pattern, 0, 0); 
+  //return to original settings
+  cairo_set_line_width(cr, linewidth);
+  cairo_set_dash(cr, pattern, 0, 0); 
 }
 
 
 
 void
-MTS_BackgroundHelper::draw_parallel(cairo_t *cr, bool horizontal, double distance, bool stroke) {
+MTS_BackgroundHelper::draw_parallel(cairo_t *cr, bool horizontal, 
+				    double distance, bool stroke) {
   
   cairo_path_t *path;
   cairo_path_data_t *data;
@@ -116,7 +118,8 @@ MTS_BackgroundHelper::set_dash_pattern(cairo_t *cr) {
 }
 
 coords
-MTS_BackgroundHelper::orient_path(cairo_t *cr, bool horizontal, bool curved, int width, int height) {
+MTS_BackgroundHelper::orient_path(cairo_t *cr, bool horizontal, bool curved, 
+				  int width, int height) {
   double x,y,angle;
   int translation_x, translation_y;
  
@@ -141,9 +144,10 @@ MTS_BackgroundHelper::orient_path(cairo_t *cr, bool horizontal, bool curved, int
     x = width - (rand() % width); // x variation of 0-width along top side
 
     //make a starting translation and angle
-    angle = -((3 * 7854) - 2 * (rand() % 7854))/10000.0; //get angle from PI/4 to 3PI/4
+    angle = -((3 * 7854) - 2 * (rand() % 7854))/10000.0; // from PI/4 to 3PI/4
       
-    //translate to approximate curved line center point, rotate around it, translate back
+    /*translate to approximate curved line center point, rotate around it, 
+      translate back */
     if(curved) {
       // try to keep xy translations in bounds of surface. finiky
       translation_y = -height/2.0 + (rand() % (int) ceil(height/2.0)) 
@@ -168,7 +172,8 @@ MTS_BackgroundHelper::orient_path(cairo_t *cr, bool horizontal, bool curved, int
 }
 
 void
-MTS_BackgroundHelper::generate_curve(cairo_t *cr, bool horizontal, int width, int height) {
+MTS_BackgroundHelper::generate_curve(cairo_t *cr, bool horizontal, int width, 
+				     int height) {
     
   std::vector<coords> points;
   PangoLayout *layout;
@@ -403,4 +408,86 @@ MTS_BackgroundHelper::city_point(cairo_t *cr, int width, int height) {
   //draw and fill the circle arc
   cairo_arc(cr, x, y, radius, 0, 2*M_PI);
   cairo_fill(cr);
+}
+
+
+void 
+MTS_BackgroundHelper::generateBgSample(CV_OUT Mat& sample, std::vector<BGFeature> &features, int width, int bg_color, int contrast){
+
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, this->resHeight_);
+  cr = cairo_create (surface);
+
+  cairo_set_source_rgb(cr, bg_color/255.0,bg_color/255.0,bg_color/255.0);
+  cairo_paint (cr);
+
+  if (find(features.begin(), features.end(), Colordiff)!= features.end()) {
+    double color1 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
+    double color2 = (bg_color-this->rng_.next()%(contrast/2))/255.0;
+    tt.colorDiff(cr, width, this->resHeight_, this->rng_.next(), color1, color2);
+  }
+  if (find(features.begin(), features.end(), Colorblob)!= features.end()) {
+    addSpots(surface,0,false,bg_color-this->rng_.next()%contrast);
+  }
+
+  //add bg bias field
+  addBgBias(cr, width, this->resHeight_, bg_color);
+
+  if (find(features.begin(), features.end(), Parallel)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    cairo_set_source_rgb(cr,color,color,color);
+    tt.addBgPattern(cr, width, this->resHeight_, true, false, true, this->rng_.next());
+  }
+  if (find(features.begin(), features.end(), Vparallel)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    cairo_set_source_rgb(cr,color,color,color);
+    tt.addBgPattern(cr, width, this->resHeight_, false, false, true, this->rng_.next());
+  }
+  if (find(features.begin(), features.end(), Grid)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    cairo_set_source_rgb(cr,color,color,color);
+    tt.addBgPattern(cr, width, this->resHeight_, true, true, false, this->rng_.next());
+  }
+  if (find(features.begin(), features.end(), Railroad)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    int line_num = this->rng_.next()%2+1;
+    for (int i=0;i<line_num;i++) {
+      fl.addLines(cr, false, true, false, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+    }
+  }
+  if (find(features.begin(), features.end(), Boundry)!= features.end()) {
+    double color = (bg_color-contrast)/255.0;
+    int line_num = this->rng_.next()%2+1;
+    for (int i=0;i<line_num;i++) {
+      fl.addLines(cr, true, false, (bool)this->rng_.next()%2, true, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+    }
+  }
+  if (find(features.begin(), features.end(), Straight)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    int line_num = this->rng_.next()%5+1;
+    for (int i=0;i<line_num;i++) {
+      fl.addLines(cr, false, false, false, false, false, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+    }
+  }
+  if (find(features.begin(), features.end(), Riverline)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    int line_num = this->rng_.next()%5+1;
+    for (int i=0;i<line_num;i++) {
+      fl.addLines(cr, false, false, false, true, (bool)this->rng_.next()%2, (bool)this->rng_.next()%2, this->rng_.next(), width, this->resHeight_, color);
+    }
+  }
+  if (find(features.begin(), features.end(), Citypoint)!= features.end()) {
+    double color = (bg_color-this->rng_.next()%contrast)/255.0;
+    cairo_set_source_rgb(cr,color,color,color);
+    tt.city_point(cr, width, this->resHeight_);
+  }
+
+  Mat res=cv::Mat(this->resHeight_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
+  CairoToMat(surface,res);
+  res.copyTo(sample);
+  cout << "ref count " << cairo_get_reference_count(cr) << endl;
+  cairo_destroy (cr);
+  cout << "ref count " << cairo_surface_get_reference_count(surface) << endl;
+  cairo_surface_destroy (surface);
 }
