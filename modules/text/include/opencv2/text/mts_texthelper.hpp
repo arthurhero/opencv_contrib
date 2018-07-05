@@ -57,7 +57,7 @@ class MTS_TextHelper : MTS_BaseHelper {
          * data - an array of vectors of strings that are font names
          */
         static void
-            set_fonts(std::shared_ptr<std::vector<string> > data[]);
+            set_fonts(std::shared_ptr<std::vector<string> > *data);
 
 
         /*
