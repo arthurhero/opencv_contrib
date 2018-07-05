@@ -16,48 +16,48 @@ using namespace std;
 void 
 MTS_TextHelper::generateFont(char *ret, int fontsize){
 
-  cout << "in generate font" << endl;
-  // assert that font vectors are not empty
-  assert(availableFonts_.size());
-  assert(blockyFonts_.size());
-  assert(regularFonts_.size());
-  assert(cursiveFonts_.size());
+    cout << "in generate font" << endl;
+    // assert that font vectors are not empty
+    assert(availableFonts_.size());
+    assert(blockyFonts_.size());
+    assert(regularFonts_.size());
+    assert(cursiveFonts_.size());
 
-  double *fontProb;
-  int font_prob = rand() % 10000;
+    double *fontProb;
+    int font_prob = rand() % 10000;
 
-  int bgIndex=static_cast<int>(this->bgType_); // DONT DO THIS
+    int bgIndex=static_cast<int>(this->bgType_); // DONT DO THIS
 
-  fontProb=this->fontProbability_[bgIndex];
+    fontProb=this->fontProbability_[bgIndex];
 
 
-  for (int i = 0; i < 3; i++) {
-    
-    if(font_prob < 10000*fontProb[i]){
-      cout << "font index " << i << endl;
+    for (int i = 0; i < 3; i++) {
 
-      int listsize = this->fonts_[i]->size();
-      cout << "list size " << listsize << endl;
-      // assert list isn't empty
-      assert(listsize);
-      const char *fnt = this->fonts_[i]->at(rand() % listsize).c_str();
-      strcpy(ret,fnt);
-      break;
+        if(font_prob < 10000*fontProb[i]){
+            cout << "font index " << i << endl;
+
+            int listsize = this->fonts_[i]->size();
+            cout << "list size " << listsize << endl;
+            // assert list isn't empty
+            assert(listsize);
+            const char *fnt = this->fonts_[i]->at(rand() % listsize).c_str();
+            strcpy(ret,fnt);
+            break;
+        }
     }
-  }
-  cout << "after for" << endl;
+    cout << "after for" << endl;
 
-  //set probability of being Italic
-  int italic_prob = rand() % 10000;
+    //set probability of being Italic
+    int italic_prob = rand() % 10000;
 
-  if(italic_prob < 10000 * italicProbability_[bgIndex]){
-    strcat(ret," Italic");
-  }
+    if(italic_prob < 10000 * italicProbability_[bgIndex]){
+        strcat(ret," Italic");
+    }
 
-  strcat(ret," ");
-  std::ostringstream stm;
-  stm << fontsize;
-  strcat(ret,stm.str().c_str());
+    strcat(ret," ");
+    std::ostringstream stm;
+    stm << fontsize;
+    strcat(ret,stm.str().c_str());
 }
 
 
@@ -160,7 +160,7 @@ MTS_TextHelper::generateTxtPatch(cairo_surface_t *textSurface,
     } else {
         pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
     }
-		    
+
     int spacing_ = (int)(1024*spacing);
 
     std::ostringstream stm;
@@ -473,11 +473,11 @@ MTS_TextHelper::distractText (cairo_t *cr, int width, int height, char *font) {
 
 void
 MTS_TextHelper::set_fonts(std::shared_ptr<std::vector<String> > data[]) {
-  this->fonts_ = data;
+    this->fonts_ = data;
 }
 
 
 void
 set_sampleCaptions(std::shared_ptr<std::vector<String> > data) {
-  this->sampleCaptions_ = data;
+    this->sampleCaptions_ = data;
 }
