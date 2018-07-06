@@ -61,9 +61,9 @@ namespace cv
      * Networks for Natural Scene Text Recognition" by Max Jaderberg.
      * available at <http://arxiv.org/pdf/1406.2227.pdf>
      */
-    class CV_EXPORTS_W MapTextSynthesizer{
+    class CV_EXPORTS_W MapTextSynthesizer {
 
-    protected:
+    protected: // -------------- PROTECTED ---------------------
       int height; //the height in pixels of the image
 		
       /*
@@ -74,7 +74,8 @@ namespace cv
        */
       MapTextSynthesizer(int sampleHeight);
 
-    public:
+    public: // ----------------- PUBLIC -- ---------------------
+
       /*
        * Setter method to initialize the blockyFonts_ field
        *

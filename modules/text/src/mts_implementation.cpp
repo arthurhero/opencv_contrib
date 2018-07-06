@@ -28,13 +28,15 @@
 #include <glib.h>
 #include <pango/pangocairo.h>
 
+// SEE mts_implementation.hpp FOR ALL DOCUMENTATION
 
 using namespace std;
 
 namespace cv{
     namespace text{
 
-        void MTSImplementation::CairoToMat(cairo_surface_t *surface,Mat &MC3)
+        void 
+        MTSImplementation::CairoToMat(cairo_surface_t *surface,Mat &MC3)
         {
             Mat MC4 = Mat(cairo_image_surface_get_height(surface),cairo_image_surface_get_width(surface),CV_8UC4,cairo_image_surface_get_data(surface));
             vector<Mat> Imgs1;
@@ -48,7 +50,8 @@ namespace cv{
             cv::merge(Imgs2,MC3);
         }
 
-        void MTSImplementation::CairoToMat(cairo_surface_t *surface,Mat &MC3, Mat &MC1)
+        void 
+        MTSImplementation::CairoToMat(cairo_surface_t *surface,Mat &MC3, Mat &MC1)
         {
             Mat MC4 = Mat(cairo_image_surface_get_height(surface),cairo_image_surface_get_width(surface),CV_8UC4,cairo_image_surface_get_data(surface));
             vector<Mat> Imgs1;
@@ -63,7 +66,8 @@ namespace cv{
             cv::merge(Imgs2,MC3);
         }
 
-        void MTSImplementation::blendWeighted(Mat& out,Mat& top,Mat& bottom,float topMask,float bottomMask){
+        void 
+        MTSImplementation::blendWeighted(Mat& out,Mat& top,Mat& bottom,float topMask,float bottomMask){
             if(out.channels( )==3 && top.channels( )==3 && bottom.channels( )==3 ){
                 for(int y=0;y<out.rows;y++){
                     float* outR=out.ptr<float>(y);
@@ -101,7 +105,8 @@ namespace cv{
             CV_Error(Error::StsError,"Images must all be either CV_32FC1 CV_32FC32");
         }
 
-        void MTSImplementation::blendWeighted(Mat& out,Mat& top,Mat& bottom,Mat& topMask_,Mat& bottomMask_){
+        void 
+        MTSImplementation::blendWeighted(Mat& out,Mat& top,Mat& bottom,Mat& topMask_,Mat& bottomMask_){
             for(int y=0;y<out.rows;y++){
                 float* outR=out.ptr<float>(y);
                 float* outG=out.ptr<float>(y)+1;
@@ -127,7 +132,8 @@ namespace cv{
             }
         }
 
-        void MTSImplementation::blendOverlay(Mat& out,Mat& top,Mat& bottom,Mat& topMask){
+        void 
+        MTSImplementation::blendOverlay(Mat& out,Mat& top,Mat& bottom,Mat& topMask){
             for(int y=0;y<out.rows;y++){
                 float* outR=out.ptr<float>(y);
                 float* outG=out.ptr<float>(y)+1;
@@ -152,7 +158,8 @@ namespace cv{
             }
         }
 
-        void MTSImplementation::blendOverlay(Mat& out,Scalar topCol,Scalar bottomCol,Mat& topMask){
+        void 
+        MTSImplementation::blendOverlay(Mat& out,Scalar topCol,Scalar bottomCol,Mat& topMask){
             float topR=float(topCol[0]);
             float topG=float(topCol[1]);
             float topB=float(topCol[2]);
@@ -177,8 +184,9 @@ namespace cv{
             }
         }
 
-        void MTSImplementation::addGaussianNoise(Mat& out){
-            double sigma = (helper.rand()%7+2)/100.0;
+        void 
+        MTSImplementation::addGaussianNoise(Mat& out){
+          double sigma = (MTS_BaseHelper::rand()%7+2)/100.0;
 
             Mat noise = Mat(out.rows, out.cols, CV_32F);
             randn(noise, 0, sigma);
@@ -194,8 +202,9 @@ namespace cv{
             merge(chs,out);
         }
 
-        void MTSImplementation::addGaussianBlur(Mat& out){
-            int ker_size = helper.rand()%2*2+3;
+        void 
+        MTSImplementation::addGaussianBlur(Mat& out){
+          int ker_size = MTS_BaseHelper::rand()%2*2+3;
             GaussianBlur(out,out,Size(ker_size,ker_size),0,0,BORDER_REFLECT_101);
         }
 
@@ -218,9 +227,10 @@ namespace cv{
             g_free (families);
         }
 
+
         MTSImplementation::MTSImplementation(
-                int sampleHeight = 50,
-                uint64 rndState = 0)
+                int sampleHeight,
+                uint64 rndState)
             : MapTextSynthesizer(sampleHeight),
             fonts_{std::shared_ptr<std::vector<String> >(&(this->blockyFonts_)),
                 std::shared_ptr<std::vector<String> >(&(this->regularFonts_)),
@@ -239,9 +249,12 @@ namespace cv{
             th.setSampleCaptions(std::shared_ptr<std::vector<String> >(&(sampleCaptions_)));
         }
 
-        void MTSImplementation::setBlockyFonts(std::vector<String>& fntList){
+        void 
+        MTSImplementation::setBlockyFonts(std::vector<String>& fntList){
+
             std::vector<String> dbList=this->availableFonts_;
-            for(size_t k=0;k<fntList.size();k++){
+
+            for(size_t k = 0; k < fntList.size(); k++){
                 if(std::find(dbList.begin(), dbList.end(), fntList[k]) == dbList.end()){
                     CV_Error(Error::StsError,"The font name list must only contain fonts in your system");
                 }
@@ -249,7 +262,8 @@ namespace cv{
             this->blockyFonts_=fntList;
         }
 
-        void MTSImplementation::setRegularFonts(std::vector<String>& fntList){
+        void 
+        MTSImplementation::setRegularFonts(std::vector<String>& fntList){
             std::vector<String> dbList=this->availableFonts_;
             for(size_t k=0;k<fntList.size();k++){
                 if(std::find(dbList.begin(), dbList.end(), fntList[k]) == dbList.end()){
@@ -259,7 +273,8 @@ namespace cv{
             this->regularFonts_=fntList;
         }
 
-        void MTSImplementation::setCursiveFonts(std::vector<String>& fntList){
+        void 
+        MTSImplementation::setCursiveFonts(std::vector<String>& fntList){
             std::vector<String> dbList=this->availableFonts_;
             for(size_t k=0;k<fntList.size();k++){
                 if(std::find(dbList.begin(), dbList.end(), fntList[k]) == dbList.end()){
@@ -269,11 +284,13 @@ namespace cv{
             this->cursiveFonts_=fntList;
         }
 
-        void MTSImplementation::setSampleCaptions (std::vector<String>& words) {
+        void 
+        MTSImplementation::setSampleCaptions (std::vector<String>& words) {
             this->sampleCaptions_ = words;
         }
 
-        void MTSImplementation::generateSample(CV_OUT String &caption, CV_OUT Mat & sample){
+        void 
+        MTSImplementation::generateSample(CV_OUT String &caption, CV_OUT Mat & sample){
 
             helper.setTypes();
 
@@ -298,13 +315,13 @@ namespace cv{
             string text;
             //cout << "generating text sample" << endl;
             if (find(bgFeatures.begin(), bgFeatures.end(), Distracttext)!= bgFeatures.end()) {
-                th.generateTxtSample(text,textSurface,height_,width,text_color,true);
+                th.generateTxtSample(text,textSurface,height,width,text_color,true);
             } else {
-                th.generateTxtSample(text,textSurface,height_,width,text_color,false);
+                th.generateTxtSample(text,textSurface,height,width,text_color,false);
             }
             caption=String(text);
-            txtSample=Mat(height_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
-            txtMask=Mat(height_,width,CV_8UC1,Scalar(0));
+            txtSample=Mat(height,width,CV_8UC3,Scalar_<uchar>(0,0,0));
+            txtMask=Mat(height,width,CV_8UC1,Scalar(0));
 
             cout << "converting to mat" << endl;
             CairoToMat(textSurface,txtSample,txtMask);
@@ -318,8 +335,8 @@ namespace cv{
             cout << "bg feature num " << bgFeatures.size() << endl; 
 
             cairo_surface_t *bgSurface;
-            bh.generateBgSample(bgSurface, bgFeatures, height_, width, bg_brightness, contrast);
-            bgSample=Mat(height_,width,CV_8UC3,Scalar_<uchar>(0,0,0));
+            bh.generateBgSample(bgSurface, bgFeatures, height, width, bg_brightness, contrast);
+            bgSample=Mat(height,width,CV_8UC3,Scalar_<uchar>(0,0,0));
             CairoToMat(bgSurface,bgSample);
             cairo_surface_destroy(bgSurface);
             //cout << "finished generating bg sample" << endl;

@@ -112,12 +112,15 @@ class MTS_BackgroundHelper : MTS_BaseHelper {
                     int height, double color);
 
 
-        /* Add bg patters to the cr like even-spaced straight line, uneven-spaced
-         * straight line, grid, etc.
+        /* Add bg patters to cr (e.g. even-spaced straight line, uneven-spaced
+         * straight line, grid)
          *
-         *
-         *
-         *
+         * cr - cairo context
+         * width - surface width
+         * height - surface height
+         * even - flag for setting even spacing between lines
+         * grid - flag for setting a grid of squares 
+         * curved - flag for setting lines to be curved
          */
         static void
             addBgPattern (cairo_t *cr, int width, int height, 
@@ -125,6 +128,12 @@ class MTS_BackgroundHelper : MTS_BaseHelper {
 
         /*
          *
+         *
+         * cr - cairo context
+         * width - surface width
+         * height - surface height
+         * color1 - 
+         * color2 - 
          */
         static void
             colorDiff (cairo_t *cr, int width, int height, double color1, double color2); 
@@ -142,6 +151,15 @@ class MTS_BackgroundHelper : MTS_BaseHelper {
 
 
     public://------------------------ PUBLIC METHODS ---------------------------
+
+  /*
+   * 
+   *
+   * bgFeatures - 
+   */
+  static void 
+  generateBgFeatures(vector<BGFeature> &bgFeatures);
+
 
         /*
          * Generates a map-like background 

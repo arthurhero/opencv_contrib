@@ -485,3 +485,31 @@ MTS_BackgroundHelper::generateBgSample(cairo_surface_t *bgSurface, std::vector<B
 
     *bgSurface = *surface;
 }
+
+
+void 
+generateBgFeatures(vector<BGFeature> &bgFeatures){
+  int index=static_cast<int>(this->bgType4_);
+  int maxnum=this->maxnum_[index];
+
+  std::vector<BGFeature> allFeatures={Colordiff, Distracttext, Boundry, Colorblob, Straight, Grid, Citypoint, Parallel, Vparallel, Mountain, Railroad, Riverline};
+  for (int i=0;i<maxnum;i++){
+    bool flag = true;
+    while (flag) {
+      int j = this->rng_.next()%allFeatures.size();
+      BGFeature cur = allFeatures[j];
+      allFeatures.erase(allFeatures.begin()+j);
+      if (cur==Vparallel && find(bgFeatures.begin(), bgFeatures.end(), Parallel)!= bgFeatures.end()) continue;
+      if (cur==Parallel && find(bgFeatures.begin(), bgFeatures.end(), Vparallel)!= bgFeatures.end()) continue;
+      if (cur==Colordiff && find(bgFeatures.begin(), bgFeatures.end(), Colorblob)!= bgFeatures.end()) continue;
+      if (cur==Colorblob && find(bgFeatures.begin(), bgFeatures.end(), Colordiff)!= bgFeatures.end()) continue;
+
+      flag=false;
+
+      int curIndex=static_cast<int>(cur);
+      if(this->rndProbUnder(this->bgProbs_[curIndex][index])){
+        bgFeatures.push_back(cur);
+      }
+    }
+  }
+}

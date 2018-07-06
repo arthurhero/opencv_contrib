@@ -10,7 +10,7 @@ using namespace std;
 
 // SEE mts_basehelper.hpp FOR ALL DOCUMENTATION
 
-MTS_BaseHelper::MTS_BaseHelper()
+MTS_BaseHelper::MTS_BaseHelper() :
     bgProbability_{0.25,0.8},
     stretchProbability_{
         {0.05,0.1,0.4,0.7},
@@ -70,28 +70,32 @@ MTS_BaseHelper::MTS_BaseHelper()
     maxnum_{6,4,10,4}
 {
     //independent properties
-    missingProbability_=0.2;
-    rotatedProbability_=0.3;
+    missingProbability_ = 0.2;
+    rotatedProbability_ = 0.3;
 
-
-    finalBlendAlpha_=0.3;
-    finalBlendProb_=0.4;
+   
+    finalBlendAlpha_ = 0.3;
+    finalBlendProb_ = 0.4;
 }
 
-void MTS_BaseHelper::setTypes(){
+void 
+MTS_BaseHelper::setTypes(){
     int bg_prob = rand()%10000;
+
     if (bg_prob<10000*bgProbability_[0]){
         textType_=Water;
         bgType_=Flow;
+
     } else if (bg_prob<10000*bgProbability_[1]){
-        textType_=Bigland;
+        textType_=BigLand;
+
         if (rand()%2==0){
             bgType_=Waterbody;
         } else {
             bgType_=Small;
         }
     } else {
-        textType_=Smallland;
+        textType_=SmallLand;
         bgType_=Small;
     }
 }
@@ -298,7 +302,7 @@ MTS_BaseHelper::parametrize_path (cairo_path_t *path)
 }
 
 
-    void
+void
 MTS_BaseHelper::transform_path (cairo_path_t *path, transform_point_func_t f, 
         void *closure)
 {

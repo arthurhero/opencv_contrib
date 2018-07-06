@@ -15,11 +15,11 @@
 class MTS_TextHelper : MTS_BaseHelper {
     private:// --------------- PRIVATE METHODS AND FIELDS ------------------------
 
-        std::shared_ptr<std::vector<String> > fonts_[3];
-        std::shared_ptr<std::vector<String> > sampleCaptions_;
+  std::shared_ptr<std::vector<cv::String> > fonts_[3];
+  std::shared_ptr<std::vector<cv::String> > sampleCaptions_;
 
         /*
-         * Returns a random latin character or numeral
+         * Returns a random latin alphabet character or numeral
          */
         static char
             randomChar();
@@ -57,7 +57,7 @@ class MTS_TextHelper : MTS_BaseHelper {
          * data - an array of vectors of strings that are font names
          */
         static void
-            set_fonts(std::shared_ptr<std::vector<string> > *data);
+        setFontLists(std::shared_ptr<std::vector<cv::String> > *data);
 
 
         /*
@@ -66,7 +66,7 @@ class MTS_TextHelper : MTS_BaseHelper {
          * data - a vector of strings containing words to be displayed
          */
         static void
-            set_sampleCaptions(std::shared_ptr<std::vector<string> > data);
+        setSampleCaptions(std::shared_ptr<std::vector<cv::String> > data);
 
 
         /*

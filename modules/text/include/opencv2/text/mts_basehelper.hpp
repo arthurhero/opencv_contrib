@@ -178,7 +178,7 @@ class MTS_BaseHelper {
         /*
          * Makes and returns a vector of x,y coordinate points for
          * a wave path to be drawn along. Coordinate point variation
-         * is determined with rng within certain bounds to prevent
+         * is determined by a rng within certain bounds to prevent
          * distorted results.
          *
          * width - surface width in pixels
@@ -279,12 +279,16 @@ class MTS_BaseHelper {
                     double x, double y, std::vector<coords> points,
                     bool stroke=false);
 
-        static RNG rng_;
+  static cv::RNG rng_;
 
 
     public://----------------------- PUBLIC METHODS --------------------------
 
+  /*
+   * A basic constructor for MTS_BaseHelper
+   */
         MTS_BaseHelper();
+
 
         /*
          * Returns true or false based on a randomly generated probability under
@@ -295,19 +299,36 @@ class MTS_BaseHelper {
         static bool
             rndProbUnder(double v);
 
+
+  /*
+   * A setter function for setting the seed used in the rng field
+   *
+   * rndState - the seed set for the rng
+   */
         static void
             setSeed(uint64 rndState);
 
+
+  /*
+   * A wrapper function for the rng_ field in this class. 
+   * Generates a positive random number
+   */
         static int
             rand();
 
+
+  /*
+   * Randomly assigns the background and text types of the image
+   * (options from BGType and TextType enums)
+   */
         static void
             setTypes();
 
+
         //public static fields
-        static double bgProbability_[2];
-        static TextType textType_;
-        static BGType bgType_;
+         double bgProbability_[2];
+         TextType textType_;
+         BGType bgType_;
 
         //text features
         static double stretchProbability_[3][4];
