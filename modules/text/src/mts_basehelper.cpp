@@ -191,6 +191,13 @@ MTS_BaseHelper::addSpots (cairo_surface_t *text, int degree, bool trans, int col
 
 }
 ///////////////////////////// from behdad's cairotwisted.c (required functions)
+/*
+ * Written by Behdad Esfahbod, 2006..2007
+ *
+ * Permission to use, copy, modify, distribute, and sell this example
+ * for any purpose is hereby granted without fee.
+ * It is provided "as is" without express or implied warranty.
+ */
 
     double
 MTS_BaseHelper::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)

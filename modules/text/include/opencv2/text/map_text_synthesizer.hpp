@@ -44,7 +44,6 @@
 #ifndef MAP_TEXT_SYNTHESIZER_HPP
 #define MAP_TEXT_SYNTHESIZER_HPP
 
-#include <string>
 
 using namespace std;
 
