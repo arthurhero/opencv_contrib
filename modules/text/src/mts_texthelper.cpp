@@ -15,6 +15,10 @@ using namespace std;
 namespace cv{
     namespace text{
 
+        // define static members
+        std::shared_ptr<std::vector<String> > *MTS_TextHelper::fonts_=nullptr;
+        std::shared_ptr<std::vector<String> > MTS_TextHelper::sampleCaptions_=std::shared_ptr<std::vector<String> >();
+
 
         // SEE mts_texthelper.hpp FOR ALL DOCUMENTATION
 
@@ -31,7 +35,7 @@ namespace cv{
                 const double *fontProb;
                 int font_prob = rng() % 10000;
 
-                int bgIndex=static_cast<int>(bgType_); // DONT DO THIS
+                int bgIndex=static_cast<int>(textType_);
 
                 fontProb=fontProbability_[bgIndex];
 
@@ -45,7 +49,7 @@ namespace cv{
                         cout << "list size " << listsize << endl;
                         // assert list isn't empty
                         assert(listsize);
-                        const char *fnt = fonts_[i]->at(rng() % listsize).c_str();
+                        const char *fnt = fonts_[i]->at(rng()%listsize).c_str();
                         strcpy(ret,fnt);
                         break;
                     }
@@ -73,17 +77,15 @@ namespace cv{
                 size_t len = caption.length();
 
                 // if determined by probability of rotation, set rotated angle
-                if (MTS_BaseHelper::rndProbUnder(rotatedProbability_)){
+                if (rndProbUnder(rotatedProbability_)){
                     int degree = rng() % 21 - 10;
-
                     cout << "degree " << degree << endl;
                     rotatedAngle_=((double)degree / 180) * M_PI;
-
                 } else {
                     rotatedAngle_ = 0;
                 }
 
-                int bgIndex=static_cast<int>(bgType_);
+                int bgIndex=static_cast<int>(textType_);
 
                 double curvingProb=curvingProbability_[bgIndex];
                 const double *spacingProb=spacingProbability_[bgIndex];
@@ -91,7 +93,7 @@ namespace cv{
 
                 // set probability of being curved
                 bool curved = false;
-                if(MTS_BaseHelper::rndProbUnder(curvingProb)){
+                if(rndProbUnder(curvingProb)){
                     curved = true;
                 }
 
@@ -110,9 +112,7 @@ namespace cv{
                 //get stretch degree
                 int stretch_prob = rng()%10000;
                 double stretch_deg=-0.5+exp(4/4.0);
-
                 for (int i = 0; i < 4; i++) {
-
                     if (stretch_prob < stretchProb[i]*10000) {
                         stretch_deg=-0.5+exp(i/4.0);
                         break;
@@ -165,6 +165,8 @@ namespace cv{
                 } else {
                     pango_font_description_set_weight(desc, PANGO_WEIGHT_BOLD);
                 }
+
+                pango_layout_set_font_description (layout, desc);
 
                 int spacing_ = (int)(1024*spacing);
 
