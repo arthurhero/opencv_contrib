@@ -125,35 +125,32 @@ namespace cv
                 return rng_.next();
             }
 
-      void 
-      MTS_BaseHelper::addSpots (cairo_surface_t *text, int degree, bool trans, int color){
+        void 
+            MTS_BaseHelper::addSpots (cairo_surface_t *text, int degree, bool trans, int color){
 
-        int height = cairo_image_surface_get_height(text);
-        int width = cairo_image_surface_get_width(text);
+                int height = cairo_image_surface_get_height(text);
+                int width = cairo_image_surface_get_width(text);
 
-        double prob; //0~100
-        unsigned char *data, *data_t;
-        int stride = cairo_format_stride_for_width(CAIRO_FORMAT_A8, width);
-        data = (unsigned char *)malloc(stride * height);
-        int pnum = 1+2*degree;
-        int xs[pnum];
-        int ys[pnum];
-        double rads[pnum];
+                double prob; //0~100
+                unsigned char *data, *data_t;
+                int stride = cairo_format_stride_for_width(CAIRO_FORMAT_A8, width);
+                data = (unsigned char *)malloc(stride * height);
+                int pnum = 1+2*degree;
+                int xs[pnum];
+                int ys[pnum];
+                double rads[pnum];
 
-        for (int i=0;i<pnum;i++) {
-          xs[i]=rng()%stride;
-          ys[i]=rng()%height;
-          rads[i]=rng()%(height/(4+2*degree));
-        }
+                for (int i=0;i<pnum;i++) {
+                    xs[i]=rng()%stride;
+                    ys[i]=rng()%height;
+                    rads[i]=rng()%(height/(4+2*degree));
+                }
 
-        for (int r=0;r<height;r++) {
-          for (int c=0;c<stride;c++) {
-            data[r*stride+c]=0;
-          }
-        }
-
-      }
-
+                for (int r=0;r<height;r++) {
+                    for (int c=0;c<stride;c++) {
+                        data[r*stride+c]=0;
+                    }
+                }
 
                 for (int i=0;i<pnum;i++) {
                     int x = xs[i];
@@ -203,15 +200,15 @@ namespace cv
                 }
 
             }
-       
-///////////////////////////// from behdad's cairotwisted.c (required functions)
-/*
- * Written by Behdad Esfahbod, 2006..2007
- *
- * Permission to use, copy, modify, distribute, and sell this example
- * for any purpose is hereby granted without fee.
- * It is provided "as is" without express or implied warranty.
- */
+
+        ///////////////////////////// from behdad's cairotwisted.c (required functions)
+        /*
+         * Written by Behdad Esfahbod, 2006..2007
+         *
+         * Permission to use, copy, modify, distribute, and sell this example
+         * for any purpose is hereby granted without fee.
+         * It is provided "as is" without express or implied warranty.
+         */
 
         double
             MTS_BaseHelper::two_points_distance (cairo_path_data_t *a, cairo_path_data_t *b)
