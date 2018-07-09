@@ -4,9 +4,11 @@
 #include <vector>
 #include <pango/pangocairo.h>
 
+namespace cv
+{
+    namespace text
+    {   
 
-namespace cv{
-    namespace text{
 
         // The different categories for text features
         enum TextType {Water=0, BigLand, SmallLand};
@@ -295,7 +297,7 @@ namespace cv{
                 static void
                     setSeed(uint64 rndState);
 
-                static int
+                static unsigned int
                     rng();
 
                 static void
@@ -304,75 +306,36 @@ namespace cv{
                 //public static fields
                 static TextType textType_;
                 static BGType bgType_;
-                static constexpr double bgProbability_[2]={0.25,0.8};
+                static double bgProbability_[2];
 
                 //text features
-                static constexpr double stretchProbability_[3][4]={
-                    {0.05,0.1,0.4,0.7},
-                    {0.05,0.1,0.4,0.7},
-                    {0.2,0.5,0.7,0.9}
-                };
-                static constexpr double spacingProbability_[3][4]={
-                    {0.05,0.1,0.2,0.6},
-                    {0.05,0.1,0.4,0.9},
-                    {0.2,0.7,0.9,0.95}
-                };
+                static double stretchProbability_[3][4];
+                static double spacingProbability_[3][4];
 
-                static constexpr double curvingProbability_[3]={0.9,0.1,0.2};
+                static double curvingProbability_[3];
 
-                static constexpr double italicProbability_[3]={0.8,0.1,0.5};
-                static constexpr double weightProbability_[3][2]={
-                    {0.1,0.7},
-                    {0.1,0.5},
-                    {0.5,0.9}
-                };
+                static double italicProbability_[3];
+                static double weightProbability_[3][2];
 
-                static constexpr double fontProbability_[3][2]={
-                    {0.2,0.9},
-                    {0.4,0.9},
-                    {0.05,0.9}
-                };
+                static double fontProbability_[3][2];
 
                 //independent text properties
-                static constexpr double missingProbability_=0.2;
-                static constexpr double rotatedProbability_=0.3;
+                static double missingProbability_;
+                static double rotatedProbability_;
                 static double rotatedAngle_;
 
-                static constexpr double finalBlendAlpha_=0.3;
-                static constexpr double finalBlendProb_=0.4;
+                static double finalBlendAlpha_;
+                static double finalBlendProb_;
 
                 //bg features
-                static constexpr double bgProbs_[12][4]={
-                    //colordiffProb_
-                    {0.5,0.5,0,0.2},
-                    //distracttextProb_
-                    {0.1,0.5,0.8,0.1},
-                    //boundryProb_
-                    {0.2,0,0.3,0},
-                    //colorblobProb_
-                    {1,1,1,1},
-                    //straightlineProb_
-                    {0.2,0.1,0.9,0.2},
-                    //gridProb_
-                    {0.6,0,0.7,0},
-                    //citypointProb_
-                    {0,0,0,0.2},
-                    //parallelProb_
-                    {0.6,0.9,0,0},
-                    //vparallelProb_
-                    {0.6,0.9,0,0},
-                    //mountainProb_
-                    {0.1,0,0.2,0.1},
-                    //railroadProb_
-                    {0.2,0,0.3,0.1},
-                    //riverlineProb_
-                    {0.95,0,0.5,0.1}
-                };
+                static double bgProbs_[12][4];
 
                 //max num of bg features each bg4 type can have
-                static constexpr int maxnum_[4]={6,4,10,4};
+                static int maxnum_[4];
         };
 
     }
+
 }
+
 #endif

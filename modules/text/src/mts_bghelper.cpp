@@ -3,12 +3,17 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <vector>
+#include <iostream>
+
 #include "opencv2/text/mts_bghelper.hpp"
+#include "opencv2/text/mts_basehelper.hpp"
 
 using namespace std;
 
-namespace cv{
-    namespace text{
+namespace cv
+{
+    namespace text
+    {   
 
         // SEE mts_bghelper.hpp FOR ALL DOCUMENTATION
 
@@ -259,19 +264,19 @@ namespace cv{
         void
             MTS_BackgroundHelper::addBgBias(cairo_t *cr, int width, int height, int color){
 
-                cairo_pattern_t *pat = cairo_pattern_create_linear(rng_.next()%width,0,rng_.next()%width,height);
-                cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,rng_.next()%height,width,rng_.next()%height);
-                int num = rng_.next()%5+3;
-                int num2 = rng_.next()%30+5; 
+                cairo_pattern_t *pat = cairo_pattern_create_linear(rng()%width,0,rng()%width,height);
+                cairo_pattern_t *pat2 = cairo_pattern_create_linear(0,rng()%height,width,rng()%height);
+                int num = rng()%5+3;
+                int num2 = rng()%30+5; 
                 double offset = 1.0/(num-1);
                 for (int i=0;i<num;i++){
-                    int color1 = color + rng_.next()%200-100;
+                    int color1 = color + rng()%200-100;
                     color1 = min(color1, 255);
                     double dcolor = color1/255.0;
                     cairo_pattern_add_color_stop_rgb(pat, i*offset, dcolor,dcolor,dcolor);
                 }
                 for (int i=0;i<num2;i++){
-                    int color2 = color + rng_.next()%200-100;
+                    int color2 = color + rng()%200-100;
                     color2 = min(color2, 255);
                     double dcolor = color2/255.0;
                     cairo_pattern_add_color_stop_rgb(pat2, i*offset, dcolor,dcolor,dcolor);
@@ -474,6 +479,7 @@ namespace cv{
         void 
             MTS_BackgroundHelper::generateBgSample(cairo_surface_t *&bgSurface, std::vector<BGFeature> &features, int height, int width, int bg_color, int contrast){
 
+                cout << "generating bg sample" << endl;
                 cairo_surface_t *surface;
                 cairo_t *cr;
                 surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);

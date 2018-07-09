@@ -8,8 +8,10 @@
 
 using namespace std;
 
-namespace cv{
-    namespace text{
+namespace cv
+{
+    namespace text
+    {   
 
         /*
          * A class to handle the synthetic generation of all background features
@@ -166,8 +168,6 @@ namespace cv{
                     generateBgSample(cairo_surface_t *&bgSurface, std::vector<BGFeature>&features, int height, int width, int bg_color, int contrast);
         };
 
-
     }
 }
-
 #endif

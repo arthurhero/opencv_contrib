@@ -9,12 +9,88 @@
 
 using namespace std;
 
-namespace cv{
-    namespace text{
-
+namespace cv
+{
+    namespace text
+    {   
         // SEE mts_basehelper.hpp FOR ALL DOCUMENTATION
 
-        MTS_BaseHelper::MTS_BaseHelper(){}
+
+        //define static members for python
+        TextType MTS_BaseHelper::textType_=Water;
+        BGType MTS_BaseHelper::bgType_=Flow;
+
+        double MTS_BaseHelper::bgProbability_[2]={0.25,0.8};
+
+        //text features
+        double MTS_BaseHelper::stretchProbability_[3][4]={
+            {0.05,0.1,0.4,0.7},
+            {0.05,0.1,0.4,0.7},
+            {0.2,0.5,0.7,0.9}
+        };
+        double MTS_BaseHelper::spacingProbability_[3][4]={
+            {0.05,0.1,0.2,0.6},
+            {0.05,0.1,0.4,0.9},
+            {0.2,0.7,0.9,0.95}
+        };
+
+        double MTS_BaseHelper::curvingProbability_[3]={0.9,0.1,0.2};
+
+        double MTS_BaseHelper::italicProbability_[3]={0.8,0.1,0.5};
+        double MTS_BaseHelper::weightProbability_[3][2]={
+            {0.1,0.7},
+            {0.1,0.5},
+            {0.5,0.9}
+        };
+
+        double MTS_BaseHelper::fontProbability_[3][2]={
+            {0.2,0.9},
+            {0.4,0.9},
+            {0.05,0.9}
+        };
+
+        //independent text properties
+        double MTS_BaseHelper::missingProbability_=0.2;
+        double MTS_BaseHelper::rotatedProbability_=0.3;
+        double MTS_BaseHelper::rotatedAngle_=0;
+
+        double MTS_BaseHelper::finalBlendAlpha_=0.3;
+        double MTS_BaseHelper::finalBlendProb_=0.4;
+
+
+        double MTS_BaseHelper::bgProbs_[12][4]={
+            //colordiffProb_
+            {0.5,0.5,0,0.2},
+            //distracttextProb_
+            {0.1,0.5,0.8,0.1},
+            //boundryProb_
+            {0.2,0,0.3,0},
+            //colorblobProb_
+            {1,1,1,1},
+            //straightlineProb_
+            {0.2,0.1,0.9,0.2},
+            //gridProb_
+            {0.6,0,0.7,0},
+            //citypointProb_
+            {0,0,0,0.2},
+            //parallelProb_
+            {0.6,0.9,0,0},
+            //vparallelProb_
+            {0.6,0.9,0,0},
+            //mountainProb_
+            {0.1,0,0.2,0.1},
+            //railroadProb_
+            {0.2,0,0.3,0.1},
+            //riverlineProb_
+            {0.95,0,0.5,0.1}
+        };
+
+        int MTS_BaseHelper::maxnum_[4]={6,4,10,4};
+
+        RNG MTS_BaseHelper::rng_=RNG(time(NULL));
+
+        MTS_BaseHelper::MTS_BaseHelper(){
+        }
 
         void MTS_BaseHelper::setTypes(){
             int bg_prob = rng()%10000;
@@ -44,7 +120,7 @@ namespace cv{
                 rng_(rndState);
             }
 
-        int
+        unsigned int
             MTS_BaseHelper::rng(){
                 return rng_.next();
             }
@@ -504,7 +580,7 @@ namespace cv{
                 double x = start.first / 100, y = start.second, u = end.first / 100, w = end.second;
                 double a, b, c, d;
 
-                c = rng()%5-2, d = rng()%5-2;
+                c = (double)(rng()%5)-2, d = (double)(rng()%5)-2;
 
                 if (x == u) return;
                 else if (x == 0) {
@@ -713,6 +789,33 @@ namespace cv{
                 }
 
                 return points;
+            }
+
+        void
+            MTS_BaseHelper::manual_translate(cairo_t *cr, cairo_path_t *path, cairo_path_data_t *data, double xtrans, double ytrans) {
+                //loop over data in the path and alter each part by specified translation
+                for (int i = 0; i < path->num_data; i += path->data[i].header.length) {
+                    data = &path->data[i];
+                    switch (data->header.type) {
+                        case CAIRO_PATH_MOVE_TO:
+                            cairo_move_to(cr, data[1].point.x + xtrans, data[1].point.y + ytrans);
+                            break;
+
+                        case CAIRO_PATH_LINE_TO:
+                            cairo_line_to (cr, data[1].point.x + xtrans, data[1].point.y + ytrans);
+                            break;
+
+                        case CAIRO_PATH_CURVE_TO:
+                            cairo_curve_to (cr, data[1].point.x + xtrans, data[1].point.y + ytrans,
+                                    data[2].point.x + xtrans, data[2].point.y + ytrans,
+                                    data[3].point.x + xtrans, data[3].point.y + ytrans);
+                            break;
+
+                        case CAIRO_PATH_CLOSE_PATH:
+                            cairo_close_path(cr);
+                            break;
+                    }
+                }
             }
 
 
